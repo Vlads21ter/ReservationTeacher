@@ -4,6 +4,12 @@ body{
     font-family: "Balsamiq Sans", sans-serif;
     font-weight: 400;
 }
+#nav{
+    background-color: white;
+    padding: 8px;
+    margin: 0px;
+
+}
 #reg{
     background-color: white;
     padding: 5px;
