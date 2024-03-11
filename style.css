@@ -3,12 +3,19 @@ body{
     text-align: center;
     font-family: "Balsamiq Sans", sans-serif;
     font-weight: 400;
+    margin: 0cap;
 }
 #nav{
+    padding: 1px;
+}
+a{
     background-color: white;
     padding: 8px;
-    margin: 0px;
-
+    border-radius: 20px;
+    text-decoration: none;
+    color: #AAD7D9;
+    display: inline-block;
+    box-shadow: 5px 5px 10px #E5E1DA;
 }
 #reg{
     background-color: white;
