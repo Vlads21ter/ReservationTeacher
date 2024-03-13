@@ -1,14 +1,40 @@
 body{
     background-color: #FBF9F1;
-    text-align: center;
+    /* text-align: center; */
     font-family: "Balsamiq Sans", sans-serif;
     font-weight: 400;
     margin: 0cap;
+    margin-left: 30px;
+    margin-right: 30px;
 }
-#nav{
+@media screen and (max-width: 490px){
+    #navb{
+        display: none;
+    }
+}
+@media screen and (min-width: 490px){
+    details{
+        display: none;
+    }
+}
+#navb{
     padding: 1px;
+    text-align: center;
 }
-#nav a{
+summary{
+    list-style: none;
+    text-align: right;
+    margin-top: 5px;
+}
+#navs h3{
+    align-content: center;
+    margin: 0px;
+}
+#navs{
+    display: block;
+    text-align: center;
+}
+#navb a{
     background-color: white;
     padding: 8px;
     border-radius: 20px;
@@ -17,8 +43,22 @@ body{
     display: inline-block;
     box-shadow: 5px 5px 10px #E5E1DA;
 }
+#navs a{
+    background-color: white;
+    padding: 8px;
+    border-radius: 20px;
+    text-decoration: none;
+    text-align: center;
+    color: #AAD7D9;
+    display: inline-block;
+    margin: 5px;
+    max-width: 150px;
+    min-width: 100px;
+    box-shadow: 5px 5px 10px #E5E1DA;
+}
 #reg{
     background-color: white;
+    text-align: center;
     padding: 5px;
     left: 50%;
     margin: 0 auto;
@@ -28,7 +68,6 @@ body{
     box-shadow: 10px 10px 10px #E5E1DA;
 }
 #reg a{
-    text-decoration: none;
     font-size: 11px;
     color: #b2aca3;
 }
@@ -59,6 +98,15 @@ h1{
     padding: 10px;
     margin: 15px;
     transition-duration: 0.4s;
+}
+#in{
+    text-align: left;
+    background-color: white;
+    border-radius: 20px;
+    padding: 10px;
+    padding-left: 25px;
+    padding-right: 25px;
+    box-shadow: 10px 10px 10px #E5E1DA;
 }
 #button:hover{
     background-color: #AAD7D9;
