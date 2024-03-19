@@ -1,0 +1,49 @@
+@media screen and (max-width: 700px){
+    #navb{
+        display: none;
+    }
+}
+@media screen and (min-width: 700px){
+    details{
+        display: none;
+    }
+}
+#navb{
+    padding: 1px;
+    text-align: center;
+}
+summary{
+    list-style: none;
+    text-align: right;
+    margin-top: 5px;
+}
+#navs h3{
+    align-content: center;
+    margin: 0px;
+}
+#navs{
+    display: block;
+    text-align: center;
+}
+#navb a{
+    background-color: white;
+    padding: 8px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: #AAD7D9;
+    display: inline-block;
+    box-shadow: 5px 5px 10px #E5E1DA;
+}
+#navs a{
+    background-color: white;
+    padding: 8px;
+    border-radius: 20px;
+    text-decoration: none;
+    text-align: center;
+    color: #AAD7D9;
+    display: inline-block;
+    margin: 5px;
+    max-width: 150px;
+    min-width: 100px;
+    box-shadow: 5px 5px 10px #E5E1DA;
+}

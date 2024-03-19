@@ -1,0 +1,31 @@
+#reg{
+    background-color: white;
+    text-align: center;
+    padding: 5px;
+    left: 50%;
+    margin: 0 auto;
+    width: 300px;
+    height: 250px;
+    border-radius: 15px;
+    box-shadow: 10px 10px 10px #E5E1DA;
+}
+#reg a{
+    font-size: 11px;
+    color: #b2aca3;
+}
+#em{
+    font-family: "Balsamiq Sans", sans-serif;
+    background-color: #FBF9F1;
+    width: 200px;
+    border-radius: 5px;
+    border-width: 1.5px;
+    margin: 5px;
+}
+#pass{
+    font-family: "Balsamiq Sans", sans-serif;
+    background-color: #FBF9F1;
+    width: 200px;
+    border-radius: 5px;
+    border-width: 1.5px;
+    margin-top: 5px;
+}
