@@ -15,10 +15,21 @@
     <form action="/registration" method="POST">
         <div id="reg">
             <h1 id="treg">Реєстрація</h1><br>
-            <input type="email" required placeholder="Введіть емейл адресу" name="email" id="em"><br/>
-            <input type="password" required placeholder="Введіть пароль" name="password" id="pass"><br>
-            <a href="login.ejs" target="_self">Маєте сторінку?</a><br>
-            <input type="submit" id="button" value="Зареєструватися">
+            <div id="inem">
+                <input type="email" required placeholder="Введіть емейл адресу" name="email" id="em"><br/>
+                <input type="password" required placeholder="Введіть пароль" name="password" id="pass"><br>
+            </div>
+            <a href="login.ejs" target="_self">Вже зареєстровані?</a><br>
+            <div id="chos">
+                <p>Хто ви?</p>
+                <input type="radio" name="ts" id="tec" value="t">
+                <label for="tec">Викладач</label>
+                <input type="radio" name="ts" id="stud" value="s">
+                <label for="stud">Студент</label>
+            </div>
+            <div id="btn">
+                <input type="submit" id="button" value="Зареєструватися">
+            </div>
         </div>
     </form>
 </body>

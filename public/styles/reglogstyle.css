@@ -1,5 +1,26 @@
 #reg{
     background-color: white;
+    padding: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    left: 50%;
+    margin: 0 auto;
+    width: 300px;
+    height: 300px;
+    border-radius: 15px;
+    box-shadow: 10px 10px 10px #E5E1DA;
+}
+#reg a{
+    font-size: 11px;
+    color: #b2aca3;
+    padding-left: 47px;
+    padding-right: 47px;
+}
+#reg h1{
+    text-align: center;
+}
+#log{
+    background-color: white;
     text-align: center;
     padding: 5px;
     left: 50%;
@@ -9,9 +30,12 @@
     border-radius: 15px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
-#reg a{
+#log a{
     font-size: 11px;
     color: #b2aca3;
+}
+#inem{
+    text-align: center;
 }
 #em{
     font-family: "Balsamiq Sans", sans-serif;
@@ -27,5 +51,15 @@
     width: 200px;
     border-radius: 5px;
     border-width: 1.5px;
-    margin-top: 5px;
+    margin: 5px;
+}
+#chos{
+    padding-left: 47px;
+    padding-right: 47px;
+}
+#chos p{
+    margin: 5px;
+}
+#btn{
+    text-align: center;
 }

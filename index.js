@@ -2,7 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import {MongoClient, ServerApiVersion} from "mongodb";
 // const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://shkliarskyiak22:L21vlads00@cluster0.jiowjli.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = "mongodb+srv://shkliarskyiak22:L21vlads00@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri,
@@ -20,6 +20,10 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
+    // await user.insertOne({
+    //   email: 'asd@ads.asd',
+    //   pass: 'asddh'
+    // });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
@@ -27,6 +31,16 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
+async function regster(email, pass, orient){
+  await client.connect();
+  const user = client.db().collection('user');
+  await user.insertOne({
+    email: email,
+    pass: pass,
+    orient: orient
+  });
+}
 
 
 const app = express();
@@ -54,12 +68,13 @@ app.get("/registration.ejs", (req, res) => {
 app.post("/login", async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    
+    // logn(email,password);
 })
 app.post("/registration", async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    
+    const orient = req.body.ts;
+    regster(email, password, orient);
 })
 app.get("/student.ejs", (req, res) => {
     res.render("student.ejs")
