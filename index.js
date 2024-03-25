@@ -1,8 +1,8 @@
 import express from "express";
 import bodyParser from "body-parser";
 import {MongoClient, ServerApiVersion} from "mongodb";
-// const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://shkliarskyiak22:L21vlads00@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
+
+const uri = "mongodb+srv://shkliarskyiak22:cUxy5UCHUFa682w9@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri,
@@ -20,10 +20,7 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    // await user.insertOne({
-    //   email: 'asd@ads.asd',
-    //   pass: 'asddh'
-    // });
+  
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
@@ -40,6 +37,18 @@ async function regster(email, pass, orient){
     pass: pass,
     orient: orient
   });
+}
+
+async function checkInfo(email1,pass1){
+
+  await client.connect();
+  const user = client.db().collection('user');
+  let lg = await user.findOne({email: email1, pass: pass1});
+  if (lg != null) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
@@ -68,7 +77,14 @@ app.get("/registration.ejs", (req, res) => {
 app.post("/login", async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    // logn(email,password);
+    // console.log(await checkInfo(email,password));
+    
+    if (await checkInfo(email,password) == true) {
+      res.send("You login!");
+    } else {
+      res.send("Wrong email or password");
+      // console.log(checkInfo(email,password));
+    }
 })
 app.post("/registration", async (req, res) => {
     const email = req.body.email;
