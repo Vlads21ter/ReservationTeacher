@@ -10,18 +10,17 @@
     border-radius: 15px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
-#reg a{
+a{
     font-size: 11px;
     color: #b2aca3;
     padding-left: 47px;
     padding-right: 47px;
 }
-#reg h1{
+h1{
     text-align: center;
 }
 #log{
     background-color: white;
-    text-align: center;
     padding: 5px;
     left: 50%;
     margin: 0 auto;
@@ -30,9 +29,8 @@
     border-radius: 15px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
-#log a{
-    font-size: 11px;
-    color: #b2aca3;
+h1{
+    text-align: center;
 }
 #inem{
     text-align: center;
@@ -62,4 +60,11 @@
 }
 #btn{
     text-align: center;
+}
+#wrng{
+    margin: 0px;
+    padding-left: 47px;
+    padding-right: 47px;
+    font-size: 10px;
+    color: red;
 }

@@ -15,10 +15,18 @@
     <form action="/login" method="POST">
         <div id="log">
             <h1 id="treg">Увійти</h1><br>
-            <input type="email" required placeholder="Введіть емейл адресу" name="email" id="em"><br/>
-            <input type="password" required placeholder="Введіть пароль" name="password" id="pass"><br>
+            <div id="inem">
+                <input type="email" required placeholder="Введіть емейл адресу" name="email" id="em"><br/>
+                <input type="password" required placeholder="Введіть пароль" name="password" id="pass"><br>
+            </div>
             <a href="registration.ejs" target="_self">Ще не зареєстровані?</a><br>
-            <input type="submit" id="button" value="Увійти">
+            <div id="message">
+                <script src="index.js"></script>
+                <p id="wrng"><%= wrngMess%></p>
+            </div>
+            <div id="btn">
+                <input type="submit" id="button" value="Увійти">
+            </div>
         </div>
     </form>
 </body>
