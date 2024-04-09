@@ -10,7 +10,7 @@
     border-radius: 15px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
-a{
+form a{
     font-size: 11px;
     color: #b2aca3;
     padding-left: 47px;
@@ -28,9 +28,6 @@ h1{
     height: 250px;
     border-radius: 15px;
     box-shadow: 10px 10px 10px #E5E1DA;
-}
-h1{
-    text-align: center;
 }
 #inem{
     text-align: center;
