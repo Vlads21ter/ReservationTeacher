@@ -10,7 +10,7 @@ const calendar = google.calendar('v3');
 
 const projectId = 'restec-419316';
 
-const uri = "mongodb+srv://shkliarskyiak22:pass@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
+const uri = "mongodb+srv://shkliarskyiak22:PASS@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
 
 let mainMail;
 let mainId;
@@ -72,12 +72,12 @@ function createEvent(auth) {
         'summary': 'Test Event',
         'description': 'This is a test event',
         'start': {
-            'dateTime': '2024-04-10T10:00:00',
-            'timeZone': 'America/New_York',
+            'dateTime': '2024-04-11T10:00:00',
+            'timeZone': 'Europe/Kiev',
         },
         'end': {
-            'dateTime': '2024-04-10T11:00:00',
-            'timeZone': 'America/New_York',
+            'dateTime': '2024-04-11T11:00:00',
+            'timeZone': 'Europe/Kiev',
         },
     };
 
@@ -126,7 +126,6 @@ const credentials = JSON.parse(content);
 const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
 
   function generateAuthUrl() {
-  console.log(client_id);
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
 
   const authUrl = oAuth2Client.generateAuthUrl({
@@ -139,21 +138,22 @@ const { client_id, client_secret, redirect_uris } = credentials.installed || cre
   return authUrl;
 }
 
-async function regster(email, pass, orient){
+async function regster(surname, name, nameF, email, pass, orient){
 
   await client.connect();
   const user = client.db().collection('user');
-
   mainMail=email;
 
   await user.insertOne({
+    surname: surname,
+    name: name,
+    nameF: nameF,
     email: email,
     pass: pass,
     orient: orient
   });
-
+  
   mainId = await user.findOne({email: email})._id;
-  await client.close();
 }
 
 async function checkInfo(email1,pass1){
@@ -223,7 +223,6 @@ app.get("/login.ejs", (req, res) => {
 app.get("/registration.ejs", (req, res) => {
     res.render("registration.ejs");
     // authenticate(createEvent);
-    console.log("ok");
 })
 
 app.post("/login", async (req, res) => {
@@ -234,27 +233,31 @@ app.post("/login", async (req, res) => {
     if (await checkInfo(email,password) == true) {
       res.render("login.ejs",{wrngMess: ""})
     } else {
+      // res.render("login.ejs",{wrngMess: "Wrong email or password"});
       res.render("login.ejs",{wrngMess: "Wrong email or password"});
+      
     }
 
 })
 app.post("/registration", async (req, res) => {
 
+    const surname = req.body.surname;
+    const name = req.body.name;
+    const nameF = req.body.nameF;
     const email = req.body.email;
     const password = req.body.password;
     const orient = req.body.ts;
 
-    regster(email, password, orient);
+    regster(surname, name, nameF, email, password, orient);
+    const authUrl = generateAuthUrl();
+    res.redirect(authUrl);
 })
 app.get("/student.ejs", (req, res) => {
     var bMail = btoa(mainMail).replace(/=+$/, '');
     res.render("student.ejs", { userMail: bMail})
 })
 app.get("/teacher.ejs", (req, res) => {
-    // res.render("teacher.ejs");
-    const authUrl = generateAuthUrl();
-    console.log(authUrl);
-    res.redirect(authUrl);
+    res.render("teacher.ejs");
 })
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`)

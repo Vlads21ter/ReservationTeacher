@@ -16,8 +16,11 @@
         <div id="reg">
             <h1 id="treg">Реєстрація</h1><br>
             <div id="inem">
-                <input type="email" required placeholder="Введіть емейл адресу" name="email" id="em"><br/>
-                <input type="password" required placeholder="Введіть пароль" name="password" id="pass"><br>
+                <input type="text" required placeholder="Прізвище" name="surname" id="nreg"><br/>
+                <input type="text" required placeholder="Ім'я" name="name" id="nreg"><br/>
+                <input type="text" placeholder="По-батькові" name="nameF" id="nreg"><br/>
+                <input type="email" required placeholder="Введіть емейл адресу" name="email" id="nreg"><br/>
+                <input type="password" required placeholder="Введіть пароль" name="password" id="nreg"><br>
             </div>
             <a href="login.ejs" target="_self">Вже зареєстровані?</a><br>
             <div id="chos">
@@ -26,6 +29,10 @@
                 <label for="tec">Викладач</label>
                 <input type="radio" name="ts" id="stud" value="s" required>
                 <label for="stud">Студент</label>
+            </div>
+            <div id="allow">
+                <input type="checkbox" name="allow" id="al" required>
+                <a href="http://">Даю дозвіл!</a>
             </div>
             <div id="btn">
                 <input type="submit" id="button" value="Зареєструватися">

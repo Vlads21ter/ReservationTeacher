@@ -6,7 +6,7 @@
     left: 50%;
     margin: 0 auto;
     width: 300px;
-    height: 300px;
+    height: 400px;
     border-radius: 15px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
@@ -32,15 +32,7 @@ h1{
 #inem{
     text-align: center;
 }
-#em{
-    font-family: "Balsamiq Sans", sans-serif;
-    background-color: #FBF9F1;
-    width: 200px;
-    border-radius: 5px;
-    border-width: 1.5px;
-    margin: 5px;
-}
-#pass{
+#nreg{
     font-family: "Balsamiq Sans", sans-serif;
     background-color: #FBF9F1;
     width: 200px;
@@ -64,4 +56,18 @@ h1{
     padding-right: 47px;
     font-size: 10px;
     color: red;
+}
+#allow{
+    text-align: center;
+    margin: 0px;
+    padding-left: 47px;
+    padding-right: 47px;
+    font-size: 10px;
+}
+#allow #al{
+    margin-bottom: 0px;
+}
+#allow a{
+    padding: 0px;
+    font-size: 15px;
 }
