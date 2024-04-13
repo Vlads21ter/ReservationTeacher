@@ -10,7 +10,7 @@ const calendar = google.calendar('v3');
 
 const projectId = 'restec-419316';
 
-const uri = "mongodb+srv://shkliarskyiak22:PASS@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
+const uri = "mongodb+srv://shkliarskyiak22:cUxy5UCHUFa682w9@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
 
 let mainMail;
 let mainId;
@@ -108,7 +108,7 @@ function createEvent(auth) {
 //   'recurrence': [
 //     'RRULE:FREQ=DAILY;COUNT=2'
 //   ],
-//   'attendees': [
+//   'attendees': [ //присутні
 //     {'email': 'lpage@example.com'},
 //     {'email': 'sbrin@example.com'},
 //   ],
@@ -142,7 +142,7 @@ async function regster(surname, name, nameF, email, pass, orient){
 
   await client.connect();
   const user = client.db().collection('user');
-  mainMail=email;
+  // mainMail=email;
 
   await user.insertOne({
     surname: surname,
@@ -154,6 +154,7 @@ async function regster(surname, name, nameF, email, pass, orient){
   });
   
   mainId = await user.findOne({email: email})._id;
+  
 }
 
 async function checkInfo(email1,pass1){
@@ -184,35 +185,7 @@ app.get("/", (req, res) => {
     res.render("home.ejs")
 })
 app.get("/home.ejs", async (req, res) => {
-    
-    try {
-      const code = req.query.code;
-      const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
-
-      const { tokens } = await oAuth2Client.getToken(code);
-      oAuth2Client.setCredentials(tokens);
-
-      // Save the token to disk
-      await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
-
-      res.render("home.ejs");
-  } catch (error) {
-      console.error('Error while handling OAuth2 callback:', error);
-      res.status(500).send('Error while handling OAuth2 callback');
-  }
-
-    // calendar.events.insert({
-    //   auth: authorizationUrl,
-    //   calendarId: 'shkliarskyi_ak22@nuwm.edu.ua',
-    //   resource: event,
-    // }, function(err, event) {
-    //   if (err) {
-    //     console.log('There was an error contacting the Calendar service: ' + err);
-    //     return;
-    //   }
-    //   console.log('Event created: %s', event.htmlLink);
-    // });
-
+  res.render("home.ejs");
 })
 app.get("/info.ejs", (req, res) => {
   res.render("info.ejs");
@@ -233,9 +206,7 @@ app.post("/login", async (req, res) => {
     if (await checkInfo(email,password) == true) {
       res.render("login.ejs",{wrngMess: ""})
     } else {
-      // res.render("login.ejs",{wrngMess: "Wrong email or password"});
       res.render("login.ejs",{wrngMess: "Wrong email or password"});
-      
     }
 
 })
@@ -247,10 +218,32 @@ app.post("/registration", async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
     const orient = req.body.ts;
+    mainMail=email;
 
     regster(surname, name, nameF, email, password, orient);
+    console.log(mainMail);
     const authUrl = generateAuthUrl();
     res.redirect(authUrl);
+})
+app.get("/oAuth.ejs", async (req, res) => {
+    
+  try {
+    const code = req.query.code;
+    console.log(code);
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
+
+    const { tokens } = await oAuth2Client.getToken(code);
+    oAuth2Client.setCredentials(tokens);
+
+    // Save the token to disk
+    await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
+
+    res.render("oAuth.ejs");
+} catch (error) {
+    console.error('Error while handling OAuth2 callback:', error);
+    res.status(500).send('Error while handling OAuth2 callback');
+}
+
 })
 app.get("/student.ejs", (req, res) => {
     var bMail = btoa(mainMail).replace(/=+$/, '');
@@ -258,6 +251,7 @@ app.get("/student.ejs", (req, res) => {
 })
 app.get("/teacher.ejs", (req, res) => {
     res.render("teacher.ejs");
+    authenticate(createEvent);
 })
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`)

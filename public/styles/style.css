@@ -31,6 +31,15 @@ h1{
     padding-right: 25px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
+#auth{
+    text-align: center;
+    background-color: white;
+    border-radius: 20px;
+    padding: 10px;
+    padding-left: 25px;
+    padding-right: 25px;
+    box-shadow: 10px 10px 10px #E5E1DA;
+}
 /* #92C7CF */
 /* #AAD7D9 */
 /* #FBF9F1 */
