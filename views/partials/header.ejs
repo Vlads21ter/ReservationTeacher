@@ -3,9 +3,12 @@
     <div id="navb">
         <h3>
             <a href="home.ejs" target="_self">Головна</a>
-            <a href="teacher.ejs" target="_self">Викладач</a>
-            <a href="student.ejs" target="_self">Студент</a>
-            <a href="info.ejs" target="_self">Як це працює</a>
+            <% if (or=="t") { %>
+                <a href="teacher.ejs" target="_self">Викладач</a>
+            <% } %>
+            <% if (or=="s") { %>
+                <a href="student.ejs" target="_self">Студент</a>
+            <% } %>
             <a href="login.ejs" target="_self">Увійти</a>
         </h3>
     </div>
@@ -17,9 +20,12 @@
             </summary>
             <h3>
                 <a href="home.ejs" target="_self">Головна</a><br>
-                <a href="teacher.ejs" target="_self">Викладач</a><br>
-                <a href="student.ejs" target="_self">Студент</a><br>
-                <a href="info.ejs" target="_self">Як це працює</a><br>
+                <% if (or=="t") { %>
+                    <a href="teacher.ejs" target="_self">Викладач</a><br>
+                <% } %>
+                <% if (or=="s") { %>
+                    <a href="student.ejs" target="_self">Студент</a><br>
+                <% } %>
                 <a href="login.ejs" target="_self">Увійти</a><br>
             </h3>
         </details>

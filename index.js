@@ -6,14 +6,19 @@ import fs from "fs/promises";
 import path from "path";
 import process from "process";
 
+import { v4 as uuidv4 } from "uuid";
+
+const requestId = uuidv4(); // Створення унікального ідентифікатора
+
 const calendar = google.calendar('v3');
 
 const projectId = 'restec-419316';
 
-const uri = "mongodb+srv://shkliarskyiak22:cUxy5UCHUFa682w9@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
+const uri = "mongodb+srv://shkliarskyiak22:@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
 
 let mainMail;
 let mainId;
+let mainOrin;
 
 const client = new MongoClient(uri,
   {
@@ -40,7 +45,7 @@ run().catch(console.dir);
 
 
 // Параметри автентифікації
-const SCOPES = ['https://www.googleapis.com/auth/calendar'];
+const SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/meetings.space.created'];
 const TOKEN_PATH = 'token.json'; // файл для зберігання токенів
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
 
@@ -63,22 +68,33 @@ async function authenticate(callback) {
       console.error('Error reading files:', err);
   }
 }
-
+console.log(requestId);
 // Створення події в Google Календарі
 function createEvent(auth) {
     const calendar = google.calendar({ version: 'v3', auth });
 
     const event = {
-        'summary': 'Test Event',
-        'description': 'This is a test event',
-        'start': {
-            'dateTime': '2024-04-11T10:00:00',
-            'timeZone': 'Europe/Kiev',
+      summary: 'Test Event',
+      description: 'This is a test event',
+      start: {
+        dateTime: '2024-04-16T21:56:00',
+        timeZone: 'Europe/Kiev',
+      },
+      end: {
+        dateTime: '2024-04-16T22:56:00',
+        timeZone: 'Europe/Kiev',
+      },
+      conferenceData: {
+        createRequest: {
+          requestId: 'uox-dhbk-knm',
+          conferenceSolutionKey: {
+            type: 'hangoutsMeet',
+          },
         },
-        'end': {
-            'dateTime': '2024-04-11T11:00:00',
-            'timeZone': 'Europe/Kiev',
-        },
+        status: 'confirmed',
+      },
+      conferenceDataVersion: '3',
+      visibility: 'public',
     };
 
     calendar.events.insert({
@@ -167,6 +183,7 @@ async function checkInfo(email1,pass1){
   if (lg != null) {
     mainMail = lg.email;
     mainId = lg._id;
+    mainOrin = lg.orient;
     await client.close();
     return true;
   } else {
@@ -182,19 +199,16 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"))
 
 app.get("/", (req, res) => {
-    res.render("home.ejs")
+    res.render("home.ejs", { or: mainOrin})
 })
 app.get("/home.ejs", async (req, res) => {
-  res.render("home.ejs");
-})
-app.get("/info.ejs", (req, res) => {
-  res.render("info.ejs");
+  res.render("home.ejs", { or: mainOrin});
 })
 app.get("/login.ejs", (req, res) => {
-    res.render("login.ejs",{wrngMess: ""})
+    res.render("login.ejs",{wrngMess: "",or: mainOrin})
 })
 app.get("/registration.ejs", (req, res) => {
-    res.render("registration.ejs");
+    res.render("registration.ejs", { or: mainOrin});
     // authenticate(createEvent);
 })
 
@@ -204,9 +218,9 @@ app.post("/login", async (req, res) => {
     const password = req.body.password;
     
     if (await checkInfo(email,password) == true) {
-      res.render("login.ejs",{wrngMess: ""})
+      res.render("login.ejs",{wrngMess: "", or: mainOrin})
     } else {
-      res.render("login.ejs",{wrngMess: "Wrong email or password"});
+      res.render("login.ejs",{wrngMess: "Wrong email or password", or: mainOrin});
     }
 
 })
@@ -219,6 +233,7 @@ app.post("/registration", async (req, res) => {
     const password = req.body.password;
     const orient = req.body.ts;
     mainMail=email;
+    mainOrin=orient;
 
     regster(surname, name, nameF, email, password, orient);
     console.log(mainMail);
@@ -238,7 +253,7 @@ app.get("/oAuth.ejs", async (req, res) => {
     // Save the token to disk
     await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
 
-    res.render("oAuth.ejs");
+    res.render("oAuth.ejs", { or: mainOrin});
 } catch (error) {
     console.error('Error while handling OAuth2 callback:', error);
     res.status(500).send('Error while handling OAuth2 callback');
@@ -247,11 +262,34 @@ app.get("/oAuth.ejs", async (req, res) => {
 })
 app.get("/student.ejs", (req, res) => {
     var bMail = btoa(mainMail).replace(/=+$/, '');
-    res.render("student.ejs", { userMail: bMail})
+    res.render("student.ejs", { userMail: bMail, or: mainOrin});
+    authenticate(createEvent);
 })
 app.get("/teacher.ejs", (req, res) => {
-    res.render("teacher.ejs");
-    authenticate(createEvent);
+    res.render("teacher.ejs", {wrngMess: "", or: mainOrin});
+    // authenticate(createEvent);
+})
+app.post("/teacher", async (req, res) => {
+
+  const name = req.body.evName;
+  let description = req.body.evDescr;
+  const startTime = req.body.evDateSt + ":00"; 
+  const endTime = req.body.evDateEn + ":00";
+
+  console.log(name);
+  console.log(description);
+  console.log(startTime);
+  console.log(endTime);
+  // authenticate(createEvent);
+
+  res.render("teacher.ejs",{wrngMess: "", or: mainOrin})
+  
+  // if (true) {
+  //   res.render("login.ejs",{wrngMess: "", or: mainOrin})
+  // } else {
+  //   res.render("login.ejs",{wrngMess: "Wrong email or password", or: mainOrin});
+  // }
+
 })
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`)

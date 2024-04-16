@@ -11,5 +11,23 @@
 </head>
 <body>
     <%- include("partials/header.ejs") %>
+    <form action="/teacher" method="POST">
+        <div id="tec">
+            <h1 id="ttec">Створити подію</h1><br>
+            <div id="ev">
+                <input type="text" required placeholder="Введіть назву" value="Вільний час для броні" name="evName" id="evIn"><br/>
+                <input type="text" placeholder="Введіть опис" name="evDescr" id="evIn"><br>
+                <input type="datetime-local" required name="evDateSt" id="evIn" ><br>
+                <input type="datetime-local" required name="evDateEn" id="evIn" ><br>
+            </div>
+            <div id="message">
+                <script src="index.js"></script>
+                <p id="wrng"><%= wrngMess%></p>
+            </div>
+            <div id="btn">
+                <input type="submit" id="button" value="Створити подію">
+            </div>
+        </div>
+    </form>
 </body>
 </html>

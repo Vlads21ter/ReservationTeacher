@@ -40,6 +40,41 @@ h1{
     padding-right: 25px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
+#tec{
+    background-color: white;
+    padding: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    left: 50%;
+    margin: 0 auto;
+    width: 300px;
+    height: 300px;
+    border-radius: 15px;
+    box-shadow: 10px 10px 10px #E5E1DA;
+}
+#ev{
+    text-align: center;
+}
+#evIn{
+    font-family: "Balsamiq Sans", sans-serif;
+    background-color: #FBF9F1;
+    width: 200px;
+    border-radius: 5px;
+    border-width: 1.5px;
+    margin: 5px;
+}
+#wrng{
+    margin: 0px;
+    padding-left: 47px;
+    padding-right: 47px;
+    font-size: 10px;
+    color: red;
+}
+#tec #btn{
+    text-align: center;
+}
+
+
 /* #92C7CF */
 /* #AAD7D9 */
 /* #FBF9F1 */
