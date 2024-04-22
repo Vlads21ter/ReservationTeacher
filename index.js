@@ -10,15 +10,23 @@ import { v4 as uuidv4 } from "uuid";
 
 const requestId = uuidv4(); // Створення унікального ідентифікатора
 
-const calendar = google.calendar('v3');
-
-const projectId = 'restec-419316';
-
-const uri = "mongodb+srv://shkliarskyiak22:@cluster0.jiowjli.mongodb.net/ReservDb?retryWrites=true&w=majority&appName=Cluster0";
+const uri = "mongodb+srv://shkliarskyiak22:@cluster0.7wz3h6v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 let mainMail;
 let mainId;
 let mainOrin;
+
+let nameEv;
+let descriptionEv;
+let startTimeEv; 
+let endTimeEv;
+
+const ctDate = new Date();
+const timezoneOffsetInMinutes = ctDate.getTimezoneOffset();
+ctDate.setMinutes(ctDate.getMinutes() - timezoneOffsetInMinutes);
+const currentDate = ctDate.toISOString().slice(0,13) + ":00";
+
+
 
 const client = new MongoClient(uri,
   {
@@ -31,7 +39,6 @@ const client = new MongoClient(uri,
 
 async function run() {
   try {
-    
     await client.connect();
     
     await client.db("admin").command({ ping: 1 });
@@ -68,37 +75,43 @@ async function authenticate(callback) {
       console.error('Error reading files:', err);
   }
 }
-console.log(requestId);
+
 // Створення події в Google Календарі
 function createEvent(auth) {
     const calendar = google.calendar({ version: 'v3', auth });
 
     const event = {
-      summary: 'Test Event',
-      description: 'This is a test event',
-      start: {
-        dateTime: '2024-04-16T21:56:00',
-        timeZone: 'Europe/Kiev',
+      "summary": nameEv,
+      "description": descriptionEv,
+      "colorId": "11",
+      "extendedProperties": {
+        "private": {
+          "tags": "Reserv",
+        },
       },
-      end: {
-        dateTime: '2024-04-16T22:56:00',
-        timeZone: 'Europe/Kiev',
+      "start": {
+        "dateTime": startTimeEv,
+        "timeZone": "Europe/Kiev",
       },
-      conferenceData: {
-        createRequest: {
-          requestId: 'uox-dhbk-knm',
-          conferenceSolutionKey: {
-            type: 'hangoutsMeet',
+      "end": {
+        "dateTime": endTimeEv,
+        "timeZone": "Europe/Kiev",
+      },
+      "conferenceData": {
+        "createRequest": {
+          "requestId": "uox-dhbk-knm",
+          "conferenceSolutionKey": {
+            "type": "hangoutsMeet",
           },
         },
-        status: 'confirmed',
+        "status": "confirmed",
       },
-      conferenceDataVersion: '3',
-      visibility: 'public',
+      "conferenceDataVersion": "3",
+      "visibility": "public",
     };
 
     calendar.events.insert({
-        calendarId: 'primary',
+        calendarId: "primary",
         resource: event,
     }, (err, event) => {
         if (err) {
@@ -158,7 +171,6 @@ async function regster(surname, name, nameF, email, pass, orient){
 
   await client.connect();
   const user = client.db().collection('user');
-  // mainMail=email;
 
   await user.insertOne({
     surname: surname,
@@ -209,7 +221,6 @@ app.get("/login.ejs", (req, res) => {
 })
 app.get("/registration.ejs", (req, res) => {
     res.render("registration.ejs", { or: mainOrin});
-    // authenticate(createEvent);
 })
 
 app.post("/login", async (req, res) => {
@@ -218,7 +229,8 @@ app.post("/login", async (req, res) => {
     const password = req.body.password;
     
     if (await checkInfo(email,password) == true) {
-      res.render("login.ejs",{wrngMess: "", or: mainOrin})
+      const authUrl = generateAuthUrl();
+      res.redirect(authUrl);
     } else {
       res.render("login.ejs",{wrngMess: "Wrong email or password", or: mainOrin});
     }
@@ -263,33 +275,20 @@ app.get("/oAuth.ejs", async (req, res) => {
 app.get("/student.ejs", (req, res) => {
     var bMail = btoa(mainMail).replace(/=+$/, '');
     res.render("student.ejs", { userMail: bMail, or: mainOrin});
-    authenticate(createEvent);
 })
 app.get("/teacher.ejs", (req, res) => {
-    res.render("teacher.ejs", {wrngMess: "", or: mainOrin});
-    // authenticate(createEvent);
+    res.render("teacher.ejs", {wrngMess: "", or: mainOrin, minTime: currentDate});
 })
 app.post("/teacher", async (req, res) => {
 
-  const name = req.body.evName;
-  let description = req.body.evDescr;
-  const startTime = req.body.evDateSt + ":00"; 
-  const endTime = req.body.evDateEn + ":00";
+  nameEv = req.body.evName;
+  descriptionEv = req.body.evDescr;
+  startTimeEv = req.body.evDateSt + ":00"; 
+  endTimeEv = req.body.evDateEn + ":00";
 
-  console.log(name);
-  console.log(description);
-  console.log(startTime);
-  console.log(endTime);
-  // authenticate(createEvent);
+  authenticate(createEvent);
 
-  res.render("teacher.ejs",{wrngMess: "", or: mainOrin})
-  
-  // if (true) {
-  //   res.render("login.ejs",{wrngMess: "", or: mainOrin})
-  // } else {
-  //   res.render("login.ejs",{wrngMess: "Wrong email or password", or: mainOrin});
-  // }
-
+  res.render("teacher.ejs",{wrngMess: "", or: mainOrin, minTime: currentDate})
 })
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`)
