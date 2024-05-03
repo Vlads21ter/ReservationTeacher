@@ -10,6 +10,9 @@ body{
 h1{
     color: #92C7CF;
 }
+h3{
+    color: #92C7CF;
+}
 #button{
     font-family: "Balsamiq Sans", sans-serif;
     background-color: #E5E1DA;
@@ -40,6 +43,27 @@ h1{
     padding-right: 25px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
+#stec h1{
+    text-align: center;
+}
+#stec h3{
+    text-align: center;
+}
+#stec{
+    background-color: white;
+    padding: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    left: 50%;
+    margin: 0 auto;
+    width: 300px;
+    height: 220px;
+    border-radius: 15px;
+    box-shadow: 10px 10px 10px #E5E1DA;
+}
+#tec h1{
+    text-align: center;
+}
 #tec{
     background-color: white;
     padding: 5px;
@@ -48,7 +72,7 @@ h1{
     left: 50%;
     margin: 0 auto;
     width: 300px;
-    height: 300px;
+    height: 320px;
     border-radius: 15px;
     box-shadow: 10px 10px 10px #E5E1DA;
 }
@@ -56,6 +80,14 @@ h1{
     text-align: center;
 }
 #evIn{
+    font-family: "Balsamiq Sans", sans-serif;
+    background-color: #FBF9F1;
+    width: 200px;
+    border-radius: 5px;
+    border-width: 1.5px;
+    margin: 5px;
+}
+#sIn{
     font-family: "Balsamiq Sans", sans-serif;
     background-color: #FBF9F1;
     width: 200px;
@@ -71,6 +103,34 @@ h1{
     color: red;
 }
 #tec #btn{
+    text-align: center;
+}
+
+#stec #btn{
+    text-align: center;
+}
+
+input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Style the custom radio button */
+input[type="radio"] + label {
+    display: inline-block;
+    cursor: pointer;
+    padding: 5px;
+}
+
+/* Style the custom radio button when selected */
+input[type="radio"]:checked + label {
+    background-color: #92C7CF;
+    color: #FBF9F1;
+    
+}
+#calendar{
+    margin: 100px;
     text-align: center;
 }
 
