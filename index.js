@@ -7,6 +7,7 @@ import path from "path";
 import process from "process";
 
 import { v4 as uuidv4 } from "uuid";
+import e from "express";
 
 const requestId = uuidv4(); // Створення унікального ідентифікатора
 
@@ -15,6 +16,8 @@ const uri = "";
 let mainMail;
 let mainId;
 let mainOrin;
+let token;
+let tecMail;
 
 let calendarId;
 let nameEv;
@@ -31,8 +34,6 @@ const timezoneOffsetInMinutes = ctDate.getTimezoneOffset();
 ctDate.setMinutes(ctDate.getMinutes() - timezoneOffsetInMinutes);
 const currentDate = ctDate.toISOString().slice(0,13) + ":00";
 
-
-
 const client = new MongoClient(uri,
   {
   serverApi: {
@@ -40,7 +41,7 @@ const client = new MongoClient(uri,
     strict: true,
     deprecationErrors: true,
   }}
-  );
+);
 
 async function run() {
   try {
@@ -104,7 +105,6 @@ function createEvent(auth) {
       },
       "conferenceData": {
         "createRequest": {
-          "requestId": "uox-dhbk-knm",
           "conferenceSolutionKey": {
             "type": "hangoutsMeet",
           },
@@ -127,33 +127,44 @@ function createEvent(auth) {
     });
 }
 
-// const event = {
-//   'summary': 'Google I/O 2015',
-//   'location': '',
-//   'description': 'A chance to hear more about Google\'s developer products.',
-//   'start': {
-//     'dateTime': '2024-04-06T09:00:00-07:00',
-//     'timeZone': 'Ukraine/Kiev',
-//   },
-//   'end': {
-//     'dateTime': '2024-04-06T17:00:00-07:00',
-//     'timeZone': 'Ukraine/Kiev',
-//   },
-//   'recurrence': [
-//     'RRULE:FREQ=DAILY;COUNT=2'
-//   ],
-//   'attendees': [ //присутні
-//     {'email': 'lpage@example.com'},
-//     {'email': 'sbrin@example.com'},
-//   ],
-//   'reminders': {
-//     'useDefault': false,
-//     'overrides': [
-//       {'method': 'email', 'minutes': 24 * 60},
-//       {'method': 'popup', 'minutes': 10},
-//     ],
-//   },
-// };
+async function findEvent(){
+  try {
+    await client.connect();
+
+    const user = client.db().collection('user');
+    let lg = await user.findOne({email: tecMail});
+
+    const tokens = lg.token;
+    await client.close();
+
+    const credentialsData = await fs.readFile(CREDENTIALS_PATH);
+    const credentials = JSON.parse(credentialsData);
+
+    const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
+
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+
+    // const tokenData = await fs.readFile(, 'utf8');
+    // const token = JSON.parse(tokens);
+    oAuth2Client.setCredentials(tokens);
+
+    const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
+    const calendarId = await getCalenId(tecMail); // Передбачується, що у вас є функція getCalenId, яка повертає ідентифікатор календаря
+    const response = await calendar.events.list({
+        calendarId: calendarId
+    });
+
+    nameEv = await response.data.items.map(event => event.summary);
+    startTimeEv = await response.data.items.map(event => event.start.dateTime || event.start.date);
+    endTimeEv = await response.data.items.map(event => event.end.dateTime || event.end.date);
+
+    await console.log(nameEv.length);
+    await console.log(startTimeEv);
+    await console.log(endTimeEv);
+  } catch (err) {
+      console.error('Error reading files:', err);
+  }
+}
 
 const content = await fs.readFile(CREDENTIALS_PATH);
 const credentials = JSON.parse(content);
@@ -164,9 +175,7 @@ function generateAuthUrl() {
 
   const authUrl = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
-      scope: SCOPES,
-      client_id: client_id,
-      redirect_uri: redirect_uris
+      scope: SCOPES
   });
 
   return authUrl;
@@ -186,9 +195,7 @@ async function regster(surname, name, nameF, email, pass, orient){
     pass: pass,
     orient: orient,
     calendarId: calendarId,
-    cd: client_id,
-    lc: client_secret,
-    di: redirect_uris
+    token: token
 
   });
   
@@ -208,6 +215,7 @@ async function checkInfo(email1,pass1){
     mainId = lg._id;
     mainOrin = lg.orient;
     calendarId = lg.calendarId;
+    token = lg.token;
     await client.close();
     return true;
   } else {
@@ -244,7 +252,7 @@ async function findTeacher(surname , name){
   }
 }
 
-async function setCalenId(oAuth2Client){
+async function setCalenId(oAuth2Client, tokens){
 
   await client.connect();
 
@@ -263,7 +271,13 @@ async function setCalenId(oAuth2Client){
 
     await user.updateOne(
       {email: mainMail},
-      {$set:{calendarId: calendarId}}
+      {
+        $set:
+        {
+          calendarId: calendarId,
+          token: tokens
+        }
+      }
     );
 
     await calendar.acl.insert({
@@ -309,6 +323,11 @@ app.get("/registration.ejs", (req, res) => {
 
 app.post("/login", async (req, res) => {
 
+    mainMail = null;
+    mainId = null;
+    mainOrin = null;
+    token = null;
+
     const email = req.body.email;
     const password = req.body.password;
     
@@ -322,6 +341,11 @@ app.post("/login", async (req, res) => {
 })
 app.post("/registration", async (req, res) => {  
 
+    mainMail = null;
+    mainId = null;
+    mainOrin = null;
+    token = null;
+
     const surname = req.body.surname;
     const name = req.body.name;
     const nameF = req.body.nameF;
@@ -332,32 +356,44 @@ app.post("/registration", async (req, res) => {
     mainOrin=orient;
 
     regster(surname, name, nameF, email, password, orient);
-    // console.log(mainMail);
     const authUrl = generateAuthUrl();
     res.redirect(authUrl);
 
 })
 app.get("/oAuth.ejs", async (req, res) => {
-    
-  try {
-    const code = req.query.code;
-    console.log(code);
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
 
-    const { tokens } = await oAuth2Client.getToken(code);
-    oAuth2Client.setCredentials(tokens);
+  if (token == null) {
+    try {
+      const code = req.query.code;
+      const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
+      
+      const { tokens } = await oAuth2Client.getToken(code);
+      oAuth2Client.setCredentials(tokens);
+      // Save the token to disk
+      token = tokens;
+      await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
+  
+      await setCalenId(oAuth2Client, tokens);
+      //Додати затримку
+      res.render("oAuth.ejs", { or: mainOrin});
+    } catch (error) {
+        console.error('Error while handling OAuth2 callback:', error);
+        res.status(500).send('Error while handling OAuth2 callback');
+    }
+  }else{
+    try {
+      const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
+  
+      oAuth2Client.setCredentials(token);
+      // Save the token to disk
+      await fs.writeFile(TOKEN_PATH, JSON.stringify(token));
 
-    // Save the token to disk
-    await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
-
-    setCalenId(oAuth2Client);
-    //Додати затримку
-    await res.render("oAuth.ejs", { or: mainOrin});
-} catch (error) {
-    console.error('Error while handling OAuth2 callback:', error);
-    res.status(500).send('Error while handling OAuth2 callback');
-}
-
+      await res.render("oAuth.ejs", { or: mainOrin});
+    } catch (error) {
+        console.error('Error while handling OAuth2 callback:', error);
+        res.status(500).send('Error while handling OAuth2 callback');
+    }
+  }
 })
 
 app.get("/student.ejs", async (req, res) => {
@@ -368,7 +404,10 @@ app.get("/student.ejs", async (req, res) => {
     or: mainOrin,
     arraySurname: "", 
     arrayName: "", 
-    arrayMail: ""
+    arrayMail: "",
+    arraySum: "",
+    arrayStartTime: "",
+    arrayEndTime: ""
 });
 })
 
@@ -386,21 +425,32 @@ app.post("/student", async (req, res) => {
     or: mainOrin,
     arraySurname: arraySurname,
     arrayName: arrayName,
-    arrayMail: arrayMail
+    arrayMail: arrayMail,
+    arraySum: "",
+    arrayStartTime: "",
+    arrayEndTime: ""
   });
 })
 app.post("/student-tec", async (req, res) => {
 
-  const tecMail = req.body.tecMail;
+  tecMail = req.body.tecMail;
+  
+  await findEvent();
+  console.log(nameEv);
 
   var bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
+
   res.render("student.ejs", {
     wrngMess: "", 
     userMail: bMail, 
     or: mainOrin,
     arraySurname: arraySurname,
     arrayName: arrayName,
-    arrayMail: arrayMail
+    arrayMail: arrayMail,
+    arraySum: nameEv,
+    arrayStartTime: startTimeEv,
+    arrayEndTime: endTimeEv
+    
   });
 })
 app.get("/teacher.ejs", (req, res) => {
