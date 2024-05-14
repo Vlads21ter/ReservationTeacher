@@ -6,11 +6,6 @@ import fs from "fs/promises";
 import path from "path";
 import process from "process";
 
-import { v4 as uuidv4 } from "uuid";
-import e from "express";
-
-const requestId = uuidv4(); // Створення унікального ідентифікатора
-
 const uri = "";
 
 let mainMail;
@@ -20,6 +15,8 @@ let token;
 let tecMail;
 
 let calendarId;
+let eventId;
+let colorId;
 let nameEv;
 let descriptionEv;
 let startTimeEv; 
@@ -28,6 +25,7 @@ let endTimeEv;
 let arraySurname;
 let arrayName;
 let arrayMail;
+let arrayOrient;
 
 const ctDate = new Date();
 const timezoneOffsetInMinutes = ctDate.getTimezoneOffset();
@@ -59,7 +57,7 @@ run().catch(console.dir);
 
 // Параметри автентифікації
 const SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/meetings.space.created'];
-const TOKEN_PATH = 'token.json'; // файл для зберігання токенів
+const TOKEN_PATH = 'token.json';
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
 
 // Автентифікація та отримання доступу до Google Календаря
@@ -132,7 +130,7 @@ async function findEvent(){
     await client.connect();
 
     const user = client.db().collection('user');
-    let lg = await user.findOne({email: tecMail});
+    const lg = await user.findOne({email: tecMail});
 
     const tokens = lg.token;
     await client.close();
@@ -144,25 +142,140 @@ async function findEvent(){
 
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-    // const tokenData = await fs.readFile(, 'utf8');
-    // const token = JSON.parse(tokens);
     oAuth2Client.setCredentials(tokens);
 
     const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
-    const calendarId = await getCalenId(tecMail); // Передбачується, що у вас є функція getCalenId, яка повертає ідентифікатор календаря
+    const calendarId = await getCalenId(tecMail);
     const response = await calendar.events.list({
         calendarId: calendarId
     });
 
-    nameEv = await response.data.items.map(event => event.summary);
-    startTimeEv = await response.data.items.map(event => event.start.dateTime || event.start.date);
-    endTimeEv = await response.data.items.map(event => event.end.dateTime || event.end.date);
+    eventId = await response.data.items.map(event => event.id);
+    let timeEv = await response.data.items.map(event => event.end.dateTime);
+    endTimeEv = timeEv.map(date => {
+      return date.replace(/[\+\-]\d{2}:\d{2}$/, '') + 'Z'; 
+    });
 
-    await console.log(nameEv.length);
-    await console.log(startTimeEv);
-    await console.log(endTimeEv);
+    for (let i = 0; i < eventId.length; i++) {
+
+      const date = new Date(endTimeEv[i]);
+      const curDate = new Date(currentDate);
+
+      if (curDate > date) {
+        await calendar.events.delete({
+          calendarId: calendarId,
+          eventId: eventId[i],
+        });
+        console.log("Подію з ід: " + eventId + " видалено")
+      }
+    }
+
+    eventId = await response.data.items.map(event => event.id);
+    nameEv = await response.data.items.map(event => event.summary);
+    colorId = await response.data.items.map(event => event.colorId);
+
+    timeEv = await response.data.items.map(event => event.start.dateTime);
+    startTimeEv = timeEv.map(date => {
+      return date.replace(/[\+\-]\d{2}:\d{2}$/, '') + 'Z'; 
+    });
+    
+    timeEv = await response.data.items.map(event => event.end.dateTime);
+    endTimeEv = timeEv.map(date => {
+      return date.replace(/[\+\-]\d{2}:\d{2}$/, '') + 'Z'; 
+    });
+
   } catch (err) {
       console.error('Error reading files:', err);
+  }
+}
+
+async function updateEvent(evId){
+  try {
+    let num;
+    for (let i = 0; i < eventId.length; i++) {
+      if (eventId[i] == evId) {
+        num = i;
+      }
+    }
+    await client.connect();
+
+    const user = client.db().collection('user');
+    const lg = await user.findOne({email: tecMail});
+
+    const tokens = lg.token;
+    const calendarId = await getCalenId(tecMail);
+
+    const credentialsData = await fs.readFile(CREDENTIALS_PATH);
+    const credentials = JSON.parse(credentialsData);
+
+    const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
+
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+
+    oAuth2Client.setCredentials(tokens);
+
+    const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
+
+    const startTime = new Date(startTimeEv[num]);
+    const changedStartTimeDate = new Date(startTime.getTime() - 180 * 60000);
+
+    const endTime = new Date(endTimeEv[num]);
+    const endTimeDate = new Date(endTime.getTime() - 180 * 60000);
+
+    const startTimeDate = new Date(changedStartTimeDate.getTime() + 30 * 60000);
+
+    const startTimeUpdateEv = startTimeDate.toISOString().replace(/\.\d+/, '');
+
+    const endTimeUpdateEv = endTimeDate.toISOString().replace(/\.\d+/, '');
+
+    const updatedEventData = {
+      "summary": "Заброньований час",
+      "description": mainMail,
+      "colorId": 9,
+      "start": { 
+        "dateTime": changedStartTimeDate,
+        "timeZone": "Europe/Kiev"
+      },
+      "end": { 
+        "dateTime": startTimeUpdateEv,
+        "timeZone": "Europe/Kiev"
+      } 
+    };
+
+    const event = {
+      "summary": nameEv[num],
+      "colorId": 11,
+      "start": { 
+        "dateTime": startTimeUpdateEv,
+        "timeZone": "Europe/Kiev"
+      },
+      "end": { 
+        "dateTime": endTimeUpdateEv ,
+        "timeZone": "Europe/Kiev"
+      } 
+    };
+
+    await calendar.events.update({
+      calendarId: calendarId,
+      eventId: evId,
+      requestBody: updatedEventData
+    }, (err, event) => {
+      if (err) {
+          console.error('Error creating event:', err);
+          return;
+      }
+      console.log('Event created:', event.data.htmlLink);
+    });
+
+    if (endTimeUpdateEv != startTimeUpdateEv) {
+      calendar.events.insert({
+        calendarId: calendarId,
+        resource: event,
+      });
+    }
+    
+  } catch (err) {
+      console.error('Error update event:', err);
   }
 }
 
@@ -179,6 +292,59 @@ function generateAuthUrl() {
   });
 
   return authUrl;
+}
+
+async function refreshToken(email){
+
+  await client.connect();
+
+  const user = client.db().collection('user');
+  let lg = await user.findOne({email: email});
+  let tokens = lg.token;
+  
+  const refresh_token = tokens.refresh_token;
+  const scope = tokens.scope;
+  const token_type = tokens.token_type;
+  const expiry_date = tokens.expiry_date;
+
+  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
+
+  oAuth2Client.setCredentials({ refresh_token });
+
+  oAuth2Client.refreshAccessToken(async (err, tokens) => {
+
+    if (err) {
+      console.error('Помилка при оновленні токену доступу:', err);
+      return;
+    }
+    
+    const accessToken = tokens.access_token;
+
+    console.log('Оновлений токен доступу:', accessToken);
+
+    await client.connect();
+
+    await user.updateOne(
+      {email: email},
+      {
+        $set:
+        {
+          token:{
+            access_token: accessToken,
+            refresh_token: refresh_token,
+            scope: scope,
+            token_type: token_type,
+            expiry_date: expiry_date
+          }
+        }
+      }
+    );
+    
+    lg = await user.findOne({email: email});
+    tokens = await lg.token;
+
+    await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
+  });  
 }
 
 async function regster(surname, name, nameF, email, pass, orient){
@@ -237,18 +403,22 @@ async function findTeacher(surname , name){
     arraySurname = await lg.map(lg => lg.surname);
     arrayName = await lg.map(lg => lg.name);
     arrayMail = await lg.map(lg => lg.email);
+    arrayOrient = await lg.map(lg => lg.orient);
+    
   }else{
     lg = await user.find({ surname: { $regex: surname.toString(), $options: 'i' }, name: { $regex: name.toString(), $options: 'i'} }).toArray();
     arraySurname = await lg.map(lg => lg.surname);
     arrayName = await lg.map(lg => lg.name);
     arrayMail = await lg.map(lg => lg.email);
+    arrayOrient = await lg.map(lg => lg.orient);
   }
-  
-  if (lg != null) {
+
+  if (lg == "") {
     await client.close();
-    return lg;
-  } else {
+    return "false";
+  }else{
     await client.close();
+    return "";
   }
 }
 
@@ -362,19 +532,22 @@ app.post("/registration", async (req, res) => {
 })
 app.get("/oAuth.ejs", async (req, res) => {
 
-  if (token == null) {
+  if (mainOrin == "s" ) {
+    await res.render("oAuth.ejs", { or: mainOrin});
+  }else if(token == null){
+    
     try {
       const code = req.query.code;
       const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
       
       const { tokens } = await oAuth2Client.getToken(code);
       oAuth2Client.setCredentials(tokens);
-      // Save the token to disk
+
       token = tokens;
       await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
   
       await setCalenId(oAuth2Client, tokens);
-      //Додати затримку
+
       res.render("oAuth.ejs", { or: mainOrin});
     } catch (error) {
         console.error('Error while handling OAuth2 callback:', error);
@@ -382,12 +555,7 @@ app.get("/oAuth.ejs", async (req, res) => {
     }
   }else{
     try {
-      const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
-  
-      oAuth2Client.setCredentials(token);
-      // Save the token to disk
-      await fs.writeFile(TOKEN_PATH, JSON.stringify(token));
-
+      refreshToken(mainMail);
       await res.render("oAuth.ejs", { or: mainOrin});
     } catch (error) {
         console.error('Error while handling OAuth2 callback:', error);
@@ -405,7 +573,10 @@ app.get("/student.ejs", async (req, res) => {
     arraySurname: "", 
     arrayName: "", 
     arrayMail: "",
+    arrayOrient: "",
+    arrayEvId: "",
     arraySum: "",
+    arrayColor: "",
     arrayStartTime: "",
     arrayEndTime: ""
 });
@@ -417,26 +588,60 @@ app.post("/student", async (req, res) => {
   const surname = req.body.vsName;
   const name = req.body.vName;
 
-  await findTeacher(surname, name);
+  const wrngMess = await findTeacher(surname, name);
 
   res.render("student.ejs", {
-    wrngMess: "", 
+    wrngMess: wrngMess, 
     userMail: "", 
     or: mainOrin,
     arraySurname: arraySurname,
     arrayName: arrayName,
     arrayMail: arrayMail,
+    arrayOrient: arrayOrient,
+    arrayEvId: "",
     arraySum: "",
+    arrayColor: "",
     arrayStartTime: "",
     arrayEndTime: ""
   });
 })
+
 app.post("/student-tec", async (req, res) => {
 
   tecMail = req.body.tecMail;
-  
+
+  try {
+    await findEvent();
+  } catch (error) {
+    await refreshToken(tecMail);
+    await findEvent();
+  }
+
+  var bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
+
+  res.render("student.ejs", {
+    wrngMess: "", 
+    userMail: bMail, 
+    or: mainOrin,
+    arraySurname: arraySurname,
+    arrayName: arrayName,
+    arrayEvId: eventId,
+    arrayMail: arrayMail,
+    arrayOrient: arrayOrient,
+    arraySum: nameEv,
+    arrayColor: colorId,
+    arrayStartTime: startTimeEv,
+    arrayEndTime: endTimeEv
+    
+  });
+})
+
+app.post("/student-cal", async (req, res) => {
+
+  const evId = req.body.tecEvent;
+
+  await updateEvent(evId);
   await findEvent();
-  console.log(nameEv);
 
   var bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
 
@@ -447,12 +652,16 @@ app.post("/student-tec", async (req, res) => {
     arraySurname: arraySurname,
     arrayName: arrayName,
     arrayMail: arrayMail,
+    arrayOrient: arrayOrient,
+    arrayEvId: eventId,
     arraySum: nameEv,
+    arrayColor: colorId,
     arrayStartTime: startTimeEv,
     arrayEndTime: endTimeEv
     
   });
 })
+
 app.get("/teacher.ejs", (req, res) => {
     res.render("teacher.ejs", {wrngMess: "", or: mainOrin, minTime: currentDate
   });
@@ -475,7 +684,6 @@ app.post("/teacher", async (req, res) => {
     res.render("teacher.ejs",{wrngMess: "", or: mainOrin, minTime: currentDate})
   }
 
-  
 })
 app.listen(port, () => {
     console.log(`Server running on port ${port}.`)

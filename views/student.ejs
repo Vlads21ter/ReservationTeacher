@@ -18,10 +18,7 @@
                 <input type="text" required placeholder="Введіть прізвище" name="vsName" id="sIn"><br/>
                 <input type="text" placeholder="Введіть ім'я" name="vName" id="sIn"><br>
             </div>
-            <div id="message">
-                <script src="index.js"></script>
-                <p id="wrng"><%= wrngMess%></p>
-            </div>
+            <script src="index.js"></script>
             <div id="btn">
                 <input type="submit" id="button" value="Пошук">
             </div>
@@ -43,41 +40,54 @@
             <div id="stec" class="choosing">
                 <h3>Знайдено викладачів:</h3>
                 <div id="ev">
-                    <% for(var i=0; i < arrayMail.length; i++) { %>
-                        <div>
-                            <input type="radio" id="arMail<%= i %>" name="tecMail" value="<%= arrayMail[i] %>">
-                            <label for="arMail<%= i %>"><%= i+1 %>. <%= arraySurname[i] %> <%= arrayName[i] %> <%= arrayMail[i] %></label>
-                        </div>
-                    <% } %>
-                </div>
-                <!-- <div id="message">
-                    <script src="index.js"></script>
-                    <p id="wrng"><%= wrngMess%></p>
-                </div> -->
-                <div id="btn">
+                     <% for(var i=0; i < arrayMail.length; i++) { %>
+                        <% if (arrayOrient[i] == "t") { %>
+                            <div>
+                                <input type="radio" id="arMail<%= i %>" name="tecMail" value="<%= arrayMail[i] %>">
+                                <label for="arMail<%= i %>"><%= i+1 %>. <%= arraySurname[i] %> <%= arrayName[i] %> <%= arrayMail[i] %></label>
+                             </div>
+                        <% } %>
+                     <% } %>
+                 </div>
+                 <div id="btn">
                     <input type="submit" id="button" value="Вибрати">
                 </div>
             </div>
         </form>
+    <% } else  if (wrngMess == "false" ) { %>
+        <div id="stec" class="wrngMess">
+            <h3>Викладачів не знайдено. :(</h3>
+        </div>
     <% } %>
-    <% if (userMail != "") { %>
-    <form action="/student-cal">
+    <% if (userMail != "" ){ %>
+    <form action="/student-cal" method="POST">
         <div id="stec" class="calendar">
             <div id="calendar">
                 <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=2&ctz=Europe%2FKiev&bgcolor=%23ffffff&showPrint=0&showCalendars=0&showTabs=0&mode=MONTH&src=<%=userMail%>&color=%23039BE5" style="border:solid 1px #777" width="800" height="600" frameborder="0" scrolling="no"></iframe>
             </div>
-            <div id="ev" class="arrayEv">
-                <% for(var i=0; i < arraySum.length; i++) { %>
-                    <div id="arrayEv">
-                        <input type="radio" id="arEvent<%= i %>" name="tecEvent" value="<%= arraySum[i] %>">
-                        <label class="arrayEv" for="arEvent<%= i %>">
-                            <%= i+1 %>.<%= arraySum[i] %></br>
-                            <%= arrayStartTime[i] %></br>
-                            <%= arrayEndTime[i] %>
-                        </label>
-                    </div>
-                <% } %>
-            </div>
+            <% if (arraySum.length != []) { %>
+                <div id="ev" class="arrayEv">
+                    <% for(var i=0; i < arraySum.length; i++) { %>
+                        <% if (arrayColor[i] != 9) { %>
+                            <div id="arrayEv">
+                                <input type="radio" id="arEvent<%= i %>" name="tecEvent" value="<%= arrayEvId[i] %>">
+                                <label class="arrayEv" for="arEvent<%= i %>">
+                                    <%= i+1 %>.<%= arraySum[i] %></br>
+                                    <%= arrayStartTime[i] %></br>
+                                    <%= arrayEndTime[i] %>
+                                </label>
+                            </div>
+                        <% } %>
+                    <% } %>
+                </div>
+                <div id="btn">
+                    <input type="submit" id="button" value="Записатися">
+                </div>
+            <% } else { %>
+                <div id="freeTime">
+                    <h3>Вільного часу не знайдено</h3>
+                </div>
+            <% } %>
         </div>
     </form>
     <% } %>
