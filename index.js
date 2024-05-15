@@ -151,10 +151,11 @@ async function findEvent(){
     });
 
     eventId = await response.data.items.map(event => event.id);
-    let timeEv = await response.data.items.map(event => event.end.dateTime);
-    endTimeEv = timeEv.map(date => {
-      return date.replace(/[\+\-]\d{2}:\d{2}$/, '') + 'Z'; 
-    });
+    endTimeEv = await response.data.items.map(event => event.end.dateTime);
+    for (let i = 0; i < endTimeEv.length; i++) {
+      const changedTimeEv = new Date(endTimeEv[i]);
+      endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
 
     for (let i = 0; i < eventId.length; i++) {
 
@@ -174,15 +175,17 @@ async function findEvent(){
     nameEv = await response.data.items.map(event => event.summary);
     colorId = await response.data.items.map(event => event.colorId);
 
-    timeEv = await response.data.items.map(event => event.start.dateTime);
-    startTimeEv = timeEv.map(date => {
-      return date.replace(/[\+\-]\d{2}:\d{2}$/, '') + 'Z'; 
-    });
+    startTimeEv = await response.data.items.map(event => event.start.dateTime);
+    for (let i = 0; i < startTimeEv.length; i++) {
+      const changedTimeEv = new Date(startTimeEv[i]);
+      startTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
     
-    timeEv = await response.data.items.map(event => event.end.dateTime);
-    endTimeEv = timeEv.map(date => {
-      return date.replace(/[\+\-]\d{2}:\d{2}$/, '') + 'Z'; 
-    });
+    endTimeEv = await response.data.items.map(event => event.end.dateTime);
+    for (let i = 0; i < endTimeEv.length; i++) {
+      const changedTimeEv = new Date(endTimeEv[i]);
+      endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
 
   } catch (err) {
       console.error('Error reading files:', err);
