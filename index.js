@@ -58,16 +58,28 @@ run().catch(console.dir);
 // Параметри автентифікації
 const SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/meetings.space.created'];
 const TOKEN_PATH = 'token.json';
-const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
+// const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
 
+// const credentialsData = await fs.readFile(CREDENTIALS_PATH);
+// const credentials = JSON.parse(credentialsData);
+
+let credentials;
+
+async function getCredentials(){
+ 
+  await client.connect();
+
+  const user = await client.db().collection('user');
+ 
+  const content = await user.findOne({checkfield: "hgGHGjghgda6HGF"});
+
+  credentials = content.credentials;
+}
 // Автентифікація та отримання доступу до Google Календаря
 async function authenticate(callback) {
   try {
-      const credentialsData = await fs.readFile(CREDENTIALS_PATH);
-      const credentials = JSON.parse(credentialsData);
-
+      await getCredentials();
       const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
-
       const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
       const tokenData = await fs.readFile(TOKEN_PATH, 'utf8');
@@ -131,13 +143,11 @@ async function findEvent(){
 
     const user = client.db().collection('user');
     const lg = await user.findOne({email: tecMail});
-
+  
     const tokens = lg.token;
     await client.close();
 
-    const credentialsData = await fs.readFile(CREDENTIALS_PATH);
-    const credentials = JSON.parse(credentialsData);
-
+    await getCredentials();
     const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
 
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
@@ -219,9 +229,7 @@ async function updateEvent(evId){
     const tokens = lg.token;
     const calendarId = await getCalenId(tecMail);
 
-    const credentialsData = await fs.readFile(CREDENTIALS_PATH);
-    const credentials = JSON.parse(credentialsData);
-
+    await getCredentials();
     const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
 
     const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
@@ -293,11 +301,10 @@ async function updateEvent(evId){
   }
 }
 
-const content = await fs.readFile(CREDENTIALS_PATH);
-const credentials = JSON.parse(content);
-const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
+async function generateAuthUrl() {
 
-function generateAuthUrl() {
+  await getCredentials();
+  const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
 
   const authUrl = oAuth2Client.generateAuthUrl({
@@ -320,6 +327,9 @@ async function refreshToken(email){
   const scope = tokens.scope;
   const token_type = tokens.token_type;
   const expiry_date = tokens.expiry_date;
+
+  await getCredentials();
+  const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
 
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
 
@@ -526,7 +536,7 @@ app.post("/login", async (req, res) => {
     const password = req.body.password;
     
     if (await checkInfo(email,password) == true) {
-      const authUrl = generateAuthUrl();
+      const authUrl = await generateAuthUrl();
       res.redirect(authUrl);
     } else {
       res.render("login.ejs",{wrngMess: "Wrong email or password", or: mainOrin});
@@ -550,7 +560,7 @@ app.post("/registration", async (req, res) => {
     mainOrin=orient;
 
     regster(surname, name, nameF, email, password, orient);
-    const authUrl = generateAuthUrl();
+    const authUrl = await generateAuthUrl();
     res.redirect(authUrl);
 
 })
@@ -562,6 +572,10 @@ app.get("/oAuth.ejs", async (req, res) => {
     
     try {
       const code = req.query.code;
+
+      await getCredentials();
+      const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
+
       const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
       
       const { tokens } = await oAuth2Client.getToken(code);
