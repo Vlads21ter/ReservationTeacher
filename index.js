@@ -6,7 +6,7 @@ import fs from "fs/promises";
 import path from "path";
 import process from "process";
 
-const uri = "";
+const uri = "mongodb+srv://shkliarskyiak22:cUxy5UCHUFa682w9@cluster0.dxx1ytg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 let mainMail;
 let mainId;
@@ -185,6 +185,17 @@ async function findEvent(){
     for (let i = 0; i < endTimeEv.length; i++) {
       const changedTimeEv = new Date(endTimeEv[i]);
       endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
+
+    for (let i = 0; i < colorId.length; i++) {
+      if (colorId[i] == 9) {
+        eventId.splice(i,1);
+        nameEv.splice(i,1);
+        colorId.splice(i,1);
+        startTimeEv.splice(i,1);
+        endTimeEv.splice(i,1);
+        i = i - 1;
+      }
     }
 
   } catch (err) {
@@ -416,6 +427,16 @@ async function findTeacher(surname , name){
     arrayOrient = await lg.map(lg => lg.orient);
   }
 
+  for (let i = 0; i < arrayOrient.length; i++) {
+    if (arrayOrient[i] == "s") {
+      arraySurname.splice(i,1);
+      arrayName.splice(i,1);
+      arrayMail.splice(i,1);
+      arrayOrient.splice(i,1);
+      i = i - 1;
+    }
+  }
+
   if (lg == "") {
     await client.close();
     return "false";
@@ -576,10 +597,8 @@ app.get("/student.ejs", async (req, res) => {
     arraySurname: "", 
     arrayName: "", 
     arrayMail: "",
-    arrayOrient: "",
     arrayEvId: "",
     arraySum: "",
-    arrayColor: "",
     arrayStartTime: "",
     arrayEndTime: ""
 });
@@ -600,10 +619,8 @@ app.post("/student", async (req, res) => {
     arraySurname: arraySurname,
     arrayName: arrayName,
     arrayMail: arrayMail,
-    arrayOrient: arrayOrient,
     arrayEvId: "",
     arraySum: "",
-    arrayColor: "",
     arrayStartTime: "",
     arrayEndTime: ""
   });
@@ -630,9 +647,7 @@ app.post("/student-tec", async (req, res) => {
     arrayName: arrayName,
     arrayEvId: eventId,
     arrayMail: arrayMail,
-    arrayOrient: arrayOrient,
     arraySum: nameEv,
-    arrayColor: colorId,
     arrayStartTime: startTimeEv,
     arrayEndTime: endTimeEv
     
@@ -655,10 +670,8 @@ app.post("/student-cal", async (req, res) => {
     arraySurname: arraySurname,
     arrayName: arrayName,
     arrayMail: arrayMail,
-    arrayOrient: arrayOrient,
     arrayEvId: eventId,
     arraySum: nameEv,
-    arrayColor: colorId,
     arrayStartTime: startTimeEv,
     arrayEndTime: endTimeEv
     

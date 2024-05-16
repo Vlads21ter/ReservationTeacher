@@ -41,12 +41,10 @@
                 <h3>Знайдено викладачів:</h3>
                 <div id="ev">
                      <% for(var i=0; i < arrayMail.length; i++) { %>
-                        <% if (arrayOrient[i] == "t") { %>
-                            <div>
-                                <input type="radio" id="arMail<%= i %>" name="tecMail" value="<%= arrayMail[i] %>">
-                                <label for="arMail<%= i %>"><%= i+1 %>. <%= arraySurname[i] %> <%= arrayName[i] %> <%= arrayMail[i] %></label>
-                             </div>
-                        <% } %>
+                        <div>
+                            <input type="radio" id="arMail<%= i %>" name="tecMail" value="<%= arrayMail[i] %>">
+                            <label for="arMail<%= i %>"><%= i+1 %>. <%= arraySurname[i] %> <%= arrayName[i] %> <%= arrayMail[i] %></label>
+                        </div>
                      <% } %>
                  </div>
                  <div id="btn">
@@ -68,16 +66,14 @@
             <% if (arraySum.length != []) { %>
                 <div id="ev" class="arrayEv">
                     <% for(var i=0; i < arraySum.length; i++) { %>
-                        <% if (arrayColor[i] != 9) { %>
-                            <div id="arrayEv">
-                                <input type="radio" id="arEvent<%= i %>" name="tecEvent" value="<%= arrayEvId[i] %>">
-                                <label class="arrayEv" for="arEvent<%= i %>">
-                                    <%= i+1 %>.<%= arraySum[i] %></br>
-                                    <%= arrayStartTime[i] %></br>
-                                    <%= arrayEndTime[i] %>
-                                </label>
-                            </div>
-                        <% } %>
+                        <div id="arrayEv">
+                            <input type="radio" id="arEvent<%= i %>" name="tecEvent" value="<%= arrayEvId[i] %>">
+                            <label class="arrayEv" for="arEvent<%= i %>">
+                                <%= i+1 %>.<%= arraySum[i] %></br>
+                                <%= arrayStartTime[i] %></br>
+                                <%= arrayEndTime[i] %>
+                            </label>
+                        </div>
                     <% } %>
                 </div>
                 <div id="btn">
