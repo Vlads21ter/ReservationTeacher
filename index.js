@@ -1,7 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
-import pkg from "mongodb";
-const {MongoClient, ServerApiVersion} = pkg.installed || pkg.web;
+import {MongoClient, ServerApiVersion} from "mongodb";
 import {google} from "googleapis";
 import fs from "fs/promises";
 import path from "path";
