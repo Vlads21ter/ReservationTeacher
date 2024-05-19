@@ -715,6 +715,6 @@ app.post("/teacher", async (req, res) => {
   }
 
 })
-app.listen(port, () => {
+app.listen(port || 80, "0.0.0.0", () => {
     console.log(`Server running on port ${port}.`)
 })
