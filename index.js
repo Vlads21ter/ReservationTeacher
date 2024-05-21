@@ -701,8 +701,8 @@ app.get("/privacy.ejs", (req, res) => {
   res.render("privacy.ejs");
 })
 
-app.get("/googlefb230f38feeb1d38.html", (req, res) => {
-  res.render("googlefb230f38feeb1d38.html");
+app.get("/googlefb230f38feeb1d38.ejs", (req, res) => {
+  res.render("googlefb230f38feeb1d38.ejs");
 })
 
 
