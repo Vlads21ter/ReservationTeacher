@@ -697,8 +697,8 @@ app.get("/teacher.ejs", (req, res) => {
   });
 })
 
-app.get("/privacy.ejs", (req, res) => {
-  res.render("privacy.ejs");
+app.get("/termsService.ejs", (req, res) => {
+  res.render("termsService.ejs");
 })
 
 app.post("/teacher", async (req, res) => {
