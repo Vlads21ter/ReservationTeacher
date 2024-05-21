@@ -696,6 +696,11 @@ app.get("/teacher.ejs", (req, res) => {
     res.render("teacher.ejs", {wrngMess: "", or: mainOrin, minTime: currentDate
   });
 })
+
+app.get("/privacy.ejs", (req, res) => {
+  res.render("privacy.ejs");
+})
+
 app.post("/teacher", async (req, res) => {
 
   nameEv = req.body.evName;
