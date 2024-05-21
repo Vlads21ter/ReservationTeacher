@@ -10,6 +10,16 @@ COPY package*.json ./
 # Встановлюємо залежності
 RUN npm install
 
+RUN npm install body-parser
+
+RUN npm install ejs
+
+RUN npm install express
+
+RUN npm install googleapis
+
+RUN npm install mongodb
+
 # Копіюємо всі файли проекту до робочої директорії
 COPY . .
 
