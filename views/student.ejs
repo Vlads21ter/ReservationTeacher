@@ -27,24 +27,26 @@
     <% if (arrayMail != "") { %>
         <style>
             #stec{
-                width: 1000px;
+                width: 410px;
             }
-            #stec.choosing{
-                width: 450px;
-                height: 450px;
+            #ev.teacher{
+                height: 100px;
                 overflow-y: auto;
-                border: 1px solid #ccc;
                 padding: 10px;
                 box-sizing: border-box;
             }
+            #stec.choosing{
+                width: 410px;
+            }
             #stec.calendar{
+                width: 800px;
                 height: 1100px;
             }
         </style>
         <form action="/student-tec" method="POST">
             <div id="stec" class="choosing">
                 <h3>Знайдено викладачів:</h3>
-                <div id="ev">
+                <div id="ev" class="teacher">
                      <% for(var i=0; i < arrayMail.length; i++) { %>
                         <div>
                             <input type="radio" id="arMail<%= i %>" name="tecMail" value="<%= arrayMail[i] %>">
