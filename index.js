@@ -421,7 +421,13 @@ async function findTeacher(surname , name){
   const user = client.db().collection('user');
 
   let lg;
-  if (name == "") {
+  if (surname == "Усіх") {
+    lg = await user.find({ orient: "t"}).toArray();
+    arraySurname = await lg.map(lg => lg.surname);
+    arrayName = await lg.map(lg => lg.name);
+    arrayMail = await lg.map(lg => lg.email);
+    arrayOrient = await lg.map(lg => lg.orient);
+  }else if (name == "") {
     lg = await user.find({ surname: { $regex: surname.toString(), $options: 'i' } }).toArray();
 
     arraySurname = await lg.map(lg => lg.surname);

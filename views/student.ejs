@@ -15,7 +15,7 @@
         <div id="stec" class="searching">
             <h1>Пошук викладача</h1><br>
             <div id="ev">
-                <input type="text" required placeholder="Введіть прізвище" name="vsName" id="sIn"><br/>
+                <input type="text" required placeholder="Введіть прізвище" name="vsName" value="Усіх" id="sIn"><br/>
                 <input type="text" placeholder="Введіть ім'я" name="vName" id="sIn"><br>
             </div>
             <script src="index.js"></script>
@@ -30,7 +30,12 @@
                 width: 1000px;
             }
             #stec.choosing{
-                height: 300px;
+                width: 450px;
+                height: 450px;
+                overflow-y: auto;
+                border: 1px solid #ccc;
+                padding: 10px;
+                box-sizing: border-box;
             }
             #stec.calendar{
                 height: 1100px;
