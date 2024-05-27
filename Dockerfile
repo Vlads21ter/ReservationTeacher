@@ -20,6 +20,8 @@ RUN npm install googleapis
 
 RUN npm install mongodb
 
+RUN npm install express-session
+
 # Копіюємо всі файли проекту до робочої директорії
 COPY . .
 

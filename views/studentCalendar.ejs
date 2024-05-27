@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResTec</title>
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <%- include("partials/header.ejs") %>
+    <form id="studentCal" action="/student-cal" method="POST">
+        <div id="stec" class="calendar">
+            <div id="calendar">
+                <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=2&ctz=Europe%2FKiev&bgcolor=%23ffffff&showPrint=0&showCalendars=0&showTabs=0&mode=MONTH&src=<%=userMail%>&color=%23039BE5" style="border:solid 1px #777" width="800" height="600" frameborder="0" scrolling="no"></iframe>
+            </div>
+            <% if (arraySum.length != []) { %>
+                <div id="ev" class="arrayEv">
+                    <% for(var i=0; i < arraySum.length; i++) { %>
+                        <div id="arrayEv">
+                            <input type="radio" id="arEvent<%= i %>" name="tecEvent" value="<%= arrayEvId[i] %>">
+                            <label class="arrayEv" for="arEvent<%= i %>">
+                                <%= i+1 %>.<%= arraySum[i] %></br>
+                                <%= arrayStartTime[i] %></br>
+                                <%= arrayEndTime[i] %>
+                            </label>
+                        </div>
+                    <% } %>
+                </div>
+                <div id="btn">
+                    <input type="submit" id="button" value="Записатися">
+                </div>
+            <% } else { %>
+                <div id="freeTime">
+                    <h3>Вільного часу не знайдено</h3>
+                </div>
+            <% } %>
+        </div>
+    </form>
+    <script>
+        // document.addEventListener("DOMContentLoaded", function() {
+        //     const tecMail = sessionStorage.getItem('tecMail');
+        //     console.log('tecMail:', tecMail);
+
+        //     const serverUrl = '/studentCalendar.ejs';
+
+        //     function sendTecMail() {
+        //         const url = `${serverUrl}?tecMail=${encodeURIComponent(tecMail)}`;
+        //         fetch(url, {
+        //             method: 'GET'
+        //         })
+        //         .then(response => response.json())
+        //         .then(data => {
+        //             console.log('Успіх:', data);
+        //         })
+        //         .catch((error) => {
+        //             console.error('Помилка:', error);
+        //         });
+        //     }
+
+        //     // Виклик функції для надсилання даних
+        //     sendTecMail();
+        // });
+    </script>
+</body>
+</html>

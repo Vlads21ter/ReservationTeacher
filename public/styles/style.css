@@ -170,6 +170,11 @@ input[type="radio"]:checked + label {
     margin-bottom: 50px;
     text-align: center;
 }
+@media screen and (max-width: 700px){
+    #calendar{
+        display: none;
+    }
+}
 
 
 /* #92C7CF */

@@ -12,7 +12,7 @@
 </head>
 <body>
     <%- include("partials/header.ejs") %>
-    <form action="/registration" method="POST">
+    <form id="registrationForm" action="/registration" method="POST">
         <div id="reg">
             <h1 id="treg">Реєстрація</h1><br>
             <div id="inem">
@@ -39,5 +39,14 @@
             </div>
         </div>
     </form>
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+            // Отримання даних з форми
+            const email = document.querySelector('input[name="email"]').value;
+
+            // Зберігання даних у localStorage
+            localStorage.setItem('email', email);
+        });
+    </script>
 </body>
 </html>

@@ -3,34 +3,20 @@ import bodyParser from "body-parser";
 import {MongoClient, ServerApiVersion} from "mongodb";
 import {google} from "googleapis";
 import fs from "fs/promises";
-import path from "path";
 import process from "process";
+import session from "express-session";
 
 const uri = "mongodb+srv://shkliarskyiak22:cUxy5UCHUFa682w9@cluster0.dxx1ytg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
-let mainMail;
-let mainId;
-let mainOrin;
-let token;
-let tecMail;
-
 let calendarId;
-let eventId;
-let colorId;
-let nameEv;
-let descriptionEv;
-let startTimeEv; 
-let endTimeEv;
 
-let arraySurname;
-let arrayName;
-let arrayMail;
-let arrayOrient;
-
-const ctDate = new Date();
-const timezoneOffsetInMinutes = ctDate.getTimezoneOffset();
-ctDate.setMinutes(ctDate.getMinutes() - timezoneOffsetInMinutes);
-const currentDate = ctDate.toISOString().slice(0,13) + ":00";
+function currentDate(){
+  const ctDate = new Date();
+  const timezoneOffsetInMinutes = ctDate.getTimezoneOffset();
+  ctDate.setMinutes(ctDate.getMinutes() - timezoneOffsetInMinutes);
+  const currentDate = ctDate.toISOString().slice(0,13) + ":00";
+  return currentDate;  
+}
 
 const client = new MongoClient(uri,
   {
@@ -58,10 +44,6 @@ run().catch(console.dir);
 // Параметри автентифікації
 const SCOPES = ['https://www.googleapis.com/auth/calendar','https://www.googleapis.com/auth/meetings.space.created'];
 const TOKEN_PATH = 'token.json';
-// const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
-
-// const credentialsData = await fs.readFile(CREDENTIALS_PATH);
-// const credentials = JSON.parse(credentialsData);
 
 let credentials;
 
@@ -75,26 +57,20 @@ async function getCredentials(){
 
   credentials = content.credentials;
 }
-// Автентифікація та отримання доступу до Google Календаря
-async function authenticate(callback) {
-  try {
-      await getCredentials();
-      const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
-      const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-      const tokenData = await fs.readFile(TOKEN_PATH, 'utf8');
-      const token = JSON.parse(tokenData);
-      oAuth2Client.setCredentials(token);
+async function createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email) {
 
-      callback(oAuth2Client);
-  } catch (err) {
-      console.error('Error reading files:', err);
-  }
-}
+    await getCredentials();
+    const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-// Створення події в Google Календарі
-function createEvent(auth) {
-    const calendar = google.calendar({ version: 'v3', auth });
+    const tokenData = await fs.readFile(TOKEN_PATH, 'utf8');
+    const token = JSON.parse(tokenData);
+    oAuth2Client.setCredentials(token);
+
+    const calendarId = await getCalenId(email);
+
+    const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
 
     const event = {
       "summary": nameEv,
@@ -131,13 +107,13 @@ function createEvent(auth) {
     }, (err, event) => {
         if (err) {
             console.error('Error creating event:', err);
-            return;
+            return err;
         }
         console.log('Event created:', event.data.htmlLink);
     });
 }
 
-async function findEvent(){
+async function findEvent(tecMail){
   try {
     await client.connect();
 
@@ -145,7 +121,6 @@ async function findEvent(){
     const lg = await user.findOne({email: tecMail});
   
     const tokens = lg.token;
-    await client.close();
 
     await getCredentials();
     const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
@@ -156,12 +131,12 @@ async function findEvent(){
 
     const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
     const calendarId = await getCalenId(tecMail);
-    const response = await calendar.events.list({
+    let response = await calendar.events.list({
         calendarId: calendarId
     });
 
-    eventId = await response.data.items.map(event => event.id);
-    endTimeEv = await response.data.items.map(event => event.end.dateTime);
+    let eventId = await response.data.items.map(event => event.id);
+    let endTimeEv = await response.data.items.map(event => event.end.dateTime);
     for (let i = 0; i < endTimeEv.length; i++) {
       const changedTimeEv = new Date(endTimeEv[i]);
       endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
@@ -170,7 +145,7 @@ async function findEvent(){
     for (let i = 0; i < eventId.length; i++) {
 
       const date = new Date(endTimeEv[i]);
-      const curDate = new Date(currentDate);
+      const curDate = new Date(currentDate());
 
       if (curDate > date) {
         await calendar.events.delete({
@@ -180,40 +155,17 @@ async function findEvent(){
         console.log("Подію з ід: " + eventId + " видалено")
       }
     }
+ 
+    response = response.data.items.filter(data => data.colorId != 9);
 
-    eventId = await response.data.items.map(event => event.id);
-    nameEv = await response.data.items.map(event => event.summary);
-    colorId = await response.data.items.map(event => event.colorId);
-
-    startTimeEv = await response.data.items.map(event => event.start.dateTime);
-    for (let i = 0; i < startTimeEv.length; i++) {
-      const changedTimeEv = new Date(startTimeEv[i]);
-      startTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
-    }
-    
-    endTimeEv = await response.data.items.map(event => event.end.dateTime);
-    for (let i = 0; i < endTimeEv.length; i++) {
-      const changedTimeEv = new Date(endTimeEv[i]);
-      endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
-    }
-
-    for (let i = 0; i < colorId.length; i++) {
-      if (colorId[i] == 9) {
-        eventId.splice(i,1);
-        nameEv.splice(i,1);
-        colorId.splice(i,1);
-        startTimeEv.splice(i,1);
-        endTimeEv.splice(i,1);
-        i = i - 1;
-      }
-    }
+    return response;
 
   } catch (err) {
       console.error('Error reading files:', err);
   }
 }
 
-async function updateEvent(evId){
+async function updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv, endTimeEv){
   try {
     let num;
     for (let i = 0; i < eventId.length; i++) {
@@ -252,7 +204,7 @@ async function updateEvent(evId){
 
     const updatedEventData = {
       "summary": "Заброньований час",
-      "description": mainMail,
+      "description": userMail,
       "colorId": 9,
       "start": { 
         "dateTime": changedStartTimeDate,
@@ -384,12 +336,10 @@ async function regster(surname, name, nameF, email, pass, orient){
     email: email,
     pass: pass,
     orient: orient,
-    calendarId: calendarId,
-    token: token
+    calendarId: null,
+    token: null
 
   });
-  
-  mainId = await user.findOne({email: email})._id;
   
 }
 
@@ -401,11 +351,6 @@ async function checkInfo(email1,pass1){
   let lg = await user.findOne({email: email1, pass: pass1});
 
   if (lg != null) {
-    mainMail = lg.email;
-    mainId = lg._id;
-    mainOrin = lg.orient;
-    calendarId = lg.calendarId;
-    token = lg.token;
     await client.close();
     return true;
   } else {
@@ -423,46 +368,37 @@ async function findTeacher(surname , name){
   let lg;
   if (surname == "Усіх") {
     lg = await user.find({ orient: "t"}).toArray();
-    arraySurname = await lg.map(lg => lg.surname);
-    arrayName = await lg.map(lg => lg.name);
-    arrayMail = await lg.map(lg => lg.email);
-    arrayOrient = await lg.map(lg => lg.orient);
+    lg = lg.filter(user => user.orient != "s");
+
   }else if (name == "") {
     lg = await user.find({ surname: { $regex: surname.toString(), $options: 'i' } }).toArray();
-
-    arraySurname = await lg.map(lg => lg.surname);
-    arrayName = await lg.map(lg => lg.name);
-    arrayMail = await lg.map(lg => lg.email);
-    arrayOrient = await lg.map(lg => lg.orient);
+    lg = lg.filter(user => user.orient != "s");
     
   }else{
     lg = await user.find({ surname: { $regex: surname.toString(), $options: 'i' }, name: { $regex: name.toString(), $options: 'i'} }).toArray();
-    arraySurname = await lg.map(lg => lg.surname);
-    arrayName = await lg.map(lg => lg.name);
-    arrayMail = await lg.map(lg => lg.email);
-    arrayOrient = await lg.map(lg => lg.orient);
+    lg = lg.filter(user => user.orient != "s");
   }
 
-  for (let i = 0; i < arrayOrient.length; i++) {
-    if (arrayOrient[i] == "s") {
-      arraySurname.splice(i,1);
-      arrayName.splice(i,1);
-      arrayMail.splice(i,1);
-      arrayOrient.splice(i,1);
-      i = i - 1;
-    }
-  }
+  await client.close();
+  return lg;
+}
 
-  if (lg == "") {
-    await client.close();
-    return "false";
-  }else{
-    await client.close();
-    return "";
+async function getOrient(email){
+
+  if (email != null) {
+    await client.connect();
+
+    const user = client.db().collection('user');
+    let lg = await user.findOne({email: email});
+
+    const Orin = lg.orient;
+    return Orin;
+  } else {
+    return null;
   }
 }
 
-async function setCalenId(oAuth2Client, tokens){
+async function setCalenId(oAuth2Client, tokens, email){
 
   await client.connect();
 
@@ -479,8 +415,10 @@ async function setCalenId(oAuth2Client, tokens){
 
     calendarId = newCalendar.data.id;
 
+    console.log(calendarId + " " + email)
+
     await user.updateOne(
-      {email: mainMail},
+      {email: email},
       {
         $set:
         {
@@ -515,46 +453,41 @@ async function getCalenId(mail){
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true
+}));
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"))
 
-app.get("/", (req, res) => {
-    res.render("home.ejs", { or: mainOrin})
+app.get("/", async (req, res) => {
+    res.render("home.ejs")
 })
 app.get("/home.ejs", async (req, res) => {
-  res.render("home.ejs", { or: mainOrin});
+  res.render("home.ejs");
 })
-app.get("/login.ejs", (req, res) => {
-    res.render("login.ejs",{wrngMess: "",or: mainOrin})
+app.get("/login.ejs", async (req, res) => {
+    res.render("login.ejs",{wrngMess: ""})
 })
-app.get("/registration.ejs", (req, res) => {
-    res.render("registration.ejs", { or: mainOrin});
+app.get("/registration.ejs", async (req, res) => {
+    res.render("registration.ejs");
 })
 
 app.post("/login", async (req, res) => {
-
-    mainMail = null;
-    mainId = null;
-    mainOrin = null;
-    token = null;
 
     const email = req.body.email;
     const password = req.body.password;
     
     if (await checkInfo(email,password) == true) {
-      const authUrl = await generateAuthUrl();
-      res.redirect(authUrl);
+      res.redirect("oAuth.ejs");
     } else {
-      res.render("login.ejs",{wrngMess: "Wrong email or password", or: mainOrin});
+      res.render("login.ejs",{wrngMess: "Wrong email or password"});
     }
 
 })
 app.post("/registration", async (req, res) => {  
-
-    mainMail = null;
-    mainId = null;
-    mainOrin = null;
-    token = null;
 
     const surname = req.body.surname;
     const name = req.body.name;
@@ -562,20 +495,25 @@ app.post("/registration", async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
     const orient = req.body.ts;
-    mainMail=email;
-    mainOrin=orient;
 
     regster(surname, name, nameF, email, password, orient);
     const authUrl = await generateAuthUrl();
     res.redirect(authUrl);
 
 })
-app.get("/oAuth.ejs", async (req, res) => {
 
-  if (mainOrin == "s" ) {
-    await res.render("oAuth.ejs", { or: mainOrin});
-  }else if(token == null){
-    
+app.get("/oAuth.ejs", async (req, res) => {
+  const email = req.query.data;
+
+  if (email == null) {
+    const code = req.query.code;
+    res.render("oAuth.ejs", {code : code})
+  }else{
+   
+    const Orin = await getOrient(email);
+
+    res.json({ Orin });
+
     try {
       const code = req.query.code;
 
@@ -587,33 +525,24 @@ app.get("/oAuth.ejs", async (req, res) => {
       const { tokens } = await oAuth2Client.getToken(code);
       oAuth2Client.setCredentials(tokens);
 
-      token = tokens;
       await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
   
-      await setCalenId(oAuth2Client, tokens);
+      await setCalenId(oAuth2Client, tokens, email);
 
-      res.render("oAuth.ejs", { or: mainOrin});
+      res.redirect("home.ejs");
     } catch (error) {
-        console.error('Error while handling OAuth2 callback:', error);
-        res.status(500).send('Error while handling OAuth2 callback');
-    }
-  }else{
-    try {
-      refreshToken(mainMail);
-      await res.render("oAuth.ejs", { or: mainOrin});
-    } catch (error) {
-        console.error('Error while handling OAuth2 callback:', error);
-        res.status(500).send('Error while handling OAuth2 callback');
+      if (Orin == "t") {
+        refreshToken(email);
+      }
+      res.render("home.ejs");
     }
   }
 })
 
 app.get("/student.ejs", async (req, res) => {
-
   res.render("student.ejs", {
     wrngMess: "", 
-    userMail: "", 
-    or: mainOrin,
+    userMail: null,
     arraySurname: "", 
     arrayName: "", 
     arrayMail: "",
@@ -630,12 +559,23 @@ app.post("/student", async (req, res) => {
   const surname = req.body.vsName;
   const name = req.body.vName;
 
-  const wrngMess = await findTeacher(surname, name);
+  const lg = await findTeacher(surname, name);
+
+  const arraySurname = await lg.map(lg => lg.surname);
+  const arrayName = await lg.map(lg => lg.name);
+  const arrayMail = await lg.map(lg => lg.email);
+
+  let wrngMess;
+
+  if (lg == "") {
+    wrngMess = "false"
+  }else{
+    wrngMess = "";
+  }
 
   res.render("student.ejs", {
     wrngMess: wrngMess, 
-    userMail: "", 
-    or: mainOrin,
+    userMail: null,
     arraySurname: arraySurname,
     arrayName: arrayName,
     arrayMail: arrayMail,
@@ -647,49 +587,111 @@ app.post("/student", async (req, res) => {
 })
 
 app.post("/student-tec", async (req, res) => {
+  req.session.tecMail = req.body.tecMail;
+  res.redirect("/studentCalendar.ejs");
+})
+app.get("/studentCalendar.ejs", async (req, res) => {
 
-  tecMail = req.body.tecMail;
+  let tecMail = req.session.tecMail;
 
-  try {
-    await findEvent();
-  } catch (error) {
-    await refreshToken(tecMail);
-    await findEvent();
+  if (tecMail == undefined) {
+    tecMail = "";
+
+    res.render("studentCalendar.ejs", {
+      userMail: "",
+      arrayEvId: "",
+      arraySum: "",
+      arrayStartTime: "",
+      arrayEndTime: ""
+      
+    });
+
+  }else{
+    let response;
+    try {
+      response = await findEvent(tecMail);
+    } catch (error) {
+      await refreshToken(tecMail);
+      response = await findEvent(tecMail);
+    }
+  
+    let eventId = await response.map(event => event.id);
+  
+    let nameEv = await response.map(event => event.summary);
+    let startTimeEv = await response.map(event => event.start.dateTime);
+    for (let i = 0; i < startTimeEv.length; i++) {
+      const changedTimeEv = new Date(startTimeEv[i]);
+      startTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
+  
+    let endTimeEv = await response.map(event => event.end.dateTime);
+    for (let i = 0; i < endTimeEv.length; i++) {
+      const changedTimeEv = new Date(endTimeEv[i]);
+      endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
+    const bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
+
+    res.render("studentCalendar.ejs", {
+      userMail: bMail,
+      arrayEvId: eventId,
+      arraySum: nameEv,
+      arrayStartTime: startTimeEv,
+      arrayEndTime: endTimeEv
+      
+    });
+  
   }
 
-  var bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
-
-  res.render("student.ejs", {
-    wrngMess: "", 
-    userMail: bMail, 
-    or: mainOrin,
-    arraySurname: arraySurname,
-    arrayName: arrayName,
-    arrayEvId: eventId,
-    arrayMail: arrayMail,
-    arraySum: nameEv,
-    arrayStartTime: startTimeEv,
-    arrayEndTime: endTimeEv
-    
-  });
 })
-
 app.post("/student-cal", async (req, res) => {
+
+  const tecMail = req.session.tecMail;
+
+  const userMail= "asd";
 
   const evId = req.body.tecEvent;
 
-  await updateEvent(evId);
-  await findEvent();
+  let response = await findEvent(tecMail);
 
-  var bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
+  let eventId = await response.map(event => event.id);
+  
+  let nameEv = await response.map(event => event.summary);
 
-  res.render("student.ejs", {
-    wrngMess: "", 
-    userMail: bMail, 
-    or: mainOrin,
-    arraySurname: arraySurname,
-    arrayName: arrayName,
-    arrayMail: arrayMail,
+  let startTimeEv = await response.map(event => event.start.dateTime);
+    for (let i = 0; i < startTimeEv.length; i++) {
+      const changedTimeEv = new Date(startTimeEv[i]);
+      startTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
+  
+  let endTimeEv = await response.map(event => event.end.dateTime);
+    for (let i = 0; i < endTimeEv.length; i++) {
+      const changedTimeEv = new Date(endTimeEv[i]);
+      endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
+  const bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
+
+  await updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv, endTimeEv);
+
+  response = await findEvent(tecMail);
+
+  eventId = await response.map(event => event.id);
+  
+  nameEv = await response.map(event => event.summary);
+
+  startTimeEv = await response.map(event => event.start.dateTime);
+    for (let i = 0; i < startTimeEv.length; i++) {
+      const changedTimeEv = new Date(startTimeEv[i]);
+      startTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
+  
+  endTimeEv = await response.map(event => event.end.dateTime);
+    for (let i = 0; i < endTimeEv.length; i++) {
+      const changedTimeEv = new Date(endTimeEv[i]);
+      endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+    }
+
+  res.render("studentCalendar.ejs", {
+    userMail: bMail,
     arrayEvId: eventId,
     arraySum: nameEv,
     arrayStartTime: startTimeEv,
@@ -698,35 +700,44 @@ app.post("/student-cal", async (req, res) => {
   });
 })
 
-app.get("/teacher.ejs", (req, res) => {
-    res.render("teacher.ejs", {wrngMess: "", or: mainOrin, minTime: currentDate
-  });
+app.get("/teacher.ejs", async (req, res) => {
+    const curDate = currentDate();
+    res.render("teacher.ejs", {
+    wrngMess: "",
+    minTime: curDate
+    }
+  );
 })
 
-app.get("/privacy.ejs", (req, res) => {
+app.get("/privacy.ejs", async (req, res) => {
   res.render("privacy.ejs");
 })
 
-app.get("/termsService.ejs", (req, res) => {
+app.get("/termsService.ejs", async (req, res) => {
   res.render("termsService.ejs");
 })
 
 app.post("/teacher", async (req, res) => {
 
-  nameEv = req.body.evName;
-  descriptionEv = req.body.evDescr;
-  startTimeEv = req.body.evDateSt + ":00"; 
-  endTimeEv = req.body.evDateEn + ":00";
+  const nameEv = req.body.evName;
+  const descriptionEv = req.body.evDescr;
+  const startTimeEv = req.body.evDateSt + ":00"; 
+  const endTimeEv = req.body.evDateEn + ":00";
+  const email = req.body.email;
 
   const stT = new Date(req.body.evDateSt);
   const enT = new Date(req.body.evDateEn);
+  const curDate = currentDate();
 
   if(stT>=enT){
-    res.render("teacher.ejs",{wrngMess: "Кінцевий час мусить бути більший ніж початковий", or: mainOrin, minTime: currentDate})
+    res.render("teacher.ejs",{wrngMess: "Кінцевий час мусить бути більший ніж початковий", minTime: curDate})
   }else{
-    authenticate(createEvent);
 
-    res.render("teacher.ejs",{wrngMess: "", or: mainOrin, minTime: currentDate})
+    await refreshToken(email);
+    createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
+    
+
+    res.render("teacher.ejs",{wrngMess: "", minTime: curDate})
   }
 
 })
