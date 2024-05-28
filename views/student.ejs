@@ -69,13 +69,14 @@
                     const selectedRadio = document.querySelector('input[type="radio"][name="tecMail"]:checked');
                     if (selectedRadio) {
                         const tecMail = selectedRadio.value;
+                        const userMail = localStorage.getItem('email');
                         console.log(tecMail);
                         // sessionStorage.setItem("tecMail", tecMail);
 
                         const serverUrl = '/studentCalendar.ejs';
 
                 function sendTecMail() {
-                const url = `${serverUrl}?tecMail=${encodeURIComponent(tecMail)}`;
+                const url = `${serverUrl}?tecMail=${encodeURIComponent(tecMail)}&userMail=${encodeURIComponent(userMail)}`;
                 fetch(url, {
                     method: 'GET'
                 })

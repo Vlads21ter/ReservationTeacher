@@ -127,6 +127,11 @@ h3{
     flex-wrap: wrap;
 }
 
+a{
+    text-decoration: none;
+    color: black ;
+}
+
 label.arrayEv{
     background-color: #FBF9F1;
     border-radius: 15px;

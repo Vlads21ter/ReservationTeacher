@@ -51,8 +51,9 @@
                     body: urlParams.toString()
                 });
 
-                const result = await response.json();
+                const result = await response;
                 console.log(1);
+                this.submit();
             } catch (error) {
                 console.error('Error:', error);
             }

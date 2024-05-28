@@ -8,8 +8,6 @@ import session from "express-session";
 
 const uri = "mongodb+srv://shkliarskyiak22:cUxy5UCHUFa682w9@cluster0.dxx1ytg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
-let calendarId;
-
 function currentDate(){
   const ctDate = new Date();
   const timezoneOffsetInMinutes = ctDate.getTimezoneOffset();
@@ -101,15 +99,20 @@ async function createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email)
       "visibility": "public",
     };
 
-    calendar.events.insert({
+    return new Promise((resolve, reject) => {
+      calendar.events.insert({
         calendarId: calendarId,
         resource: event,
-    }, (err, event) => {
+      }, (err, event) => {
         if (err) {
-            console.error('Error creating event:', err);
-            return err;
+          console.error('Error creating event:', err);
+          reject(err);
+        } else {
+          const eventLink = event.data.htmlLink;
+          console.log('Event created:', eventLink);
+          resolve(eventLink);
         }
-        console.log('Event created:', event.data.htmlLink);
+      });
     });
 }
 
@@ -155,6 +158,10 @@ async function findEvent(tecMail){
         console.log("Подію з ід: " + eventId + " видалено")
       }
     }
+
+    response = await calendar.events.list({
+      calendarId: calendarId
+    });
  
     response = response.data.items.filter(data => data.colorId != 9);
 
@@ -229,16 +236,21 @@ async function updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv
       } 
     };
 
-    await calendar.events.update({
-      calendarId: calendarId,
-      eventId: evId,
-      requestBody: updatedEventData
-    }, (err, event) => {
-      if (err) {
-          console.error('Error creating event:', err);
-          return;
-      }
-      console.log('Event created:', event.data.htmlLink);
+    const eventLink = await new Promise((resolve, reject) => {
+      calendar.events.update({
+        calendarId: calendarId,
+        eventId: evId,
+        requestBody: updatedEventData
+      }, (err, event) => {
+        if (err) {
+          console.error('Error updating event:', err);
+          reject(err);
+        } else {
+          const eventLink = event.data.htmlLink;
+          console.log('Event updated:', eventLink);
+          resolve(eventLink);
+        }
+      });
     });
 
     if (endTimeUpdateEv != startTimeUpdateEv) {
@@ -247,7 +259,7 @@ async function updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv
         resource: event,
       });
     }
-    
+    return eventLink;
   } catch (err) {
       console.error('Error update event:', err);
   }
@@ -413,9 +425,7 @@ async function setCalenId(oAuth2Client, tokens, email){
       }
     });
 
-    calendarId = newCalendar.data.id;
-
-    console.log(calendarId + " " + email)
+    const calendarId = newCalendar.data.id;
 
     await user.updateOne(
       {email: email},
@@ -588,6 +598,7 @@ app.post("/student", async (req, res) => {
 
 app.post("/student-tec", async (req, res) => {
   req.session.tecMail = req.body.tecMail;
+  req.session.userMail = req.body.userMail;
   res.redirect("/studentCalendar.ejs");
 })
 app.get("/studentCalendar.ejs", async (req, res) => {
@@ -647,7 +658,7 @@ app.post("/student-cal", async (req, res) => {
 
   const tecMail = req.session.tecMail;
 
-  const userMail= "asd";
+  const userMail= req.session.userMail;;
 
   const evId = req.body.tecEvent;
 
@@ -668,36 +679,12 @@ app.post("/student-cal", async (req, res) => {
       const changedTimeEv = new Date(endTimeEv[i]);
       endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
     }
-  const bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
 
-  await updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv, endTimeEv);
+  const eventLink = await updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv, endTimeEv);
+  req.session.eventLink = eventLink;
+  req.session.message = "Час успішно заюроньовано!";
 
-  response = await findEvent(tecMail);
-
-  eventId = await response.map(event => event.id);
-  
-  nameEv = await response.map(event => event.summary);
-
-  startTimeEv = await response.map(event => event.start.dateTime);
-    for (let i = 0; i < startTimeEv.length; i++) {
-      const changedTimeEv = new Date(startTimeEv[i]);
-      startTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
-    }
-  
-  endTimeEv = await response.map(event => event.end.dateTime);
-    for (let i = 0; i < endTimeEv.length; i++) {
-      const changedTimeEv = new Date(endTimeEv[i]);
-      endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
-    }
-
-  res.render("studentCalendar.ejs", {
-    userMail: bMail,
-    arrayEvId: eventId,
-    arraySum: nameEv,
-    arrayStartTime: startTimeEv,
-    arrayEndTime: endTimeEv
-    
-  });
+  res.redirect("/successmessage.ejs");
 })
 
 app.get("/teacher.ejs", async (req, res) => {
@@ -734,12 +721,24 @@ app.post("/teacher", async (req, res) => {
   }else{
 
     await refreshToken(email);
-    createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
-    
+    // req.session.eventLink = await createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
+    const eventLink = await createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
 
-    res.render("teacher.ejs",{wrngMess: "", minTime: curDate})
+
+      req.session.eventLink = eventLink;
+      req.session.message = "Подію створено успішно!";
+
+      res.redirect("/successmessage.ejs");
   }
 
+})
+
+app.get("/successmessage.ejs", async (req, res) => {
+
+  const link = req.session.eventLink;
+  const message = req.session.message;
+
+  res.render("successmessage.ejs",{message: message, eventLink: link});
 })
 app.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}.`)
