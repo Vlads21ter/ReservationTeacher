@@ -7,10 +7,6 @@
     details{
         display: none;
     }
-    #stec.calendar{
-        width: 300px;
-        height: auto;
-    }
 }
 #navb{
     padding: 1px;
@@ -28,10 +24,6 @@ summary{
 #navs{
     display: block;
     text-align: center;
-}
-#stec.calendar{
-    width: 800px;
-    height: 1100px;
 }
 #navb a{
     background-color: white;

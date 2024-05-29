@@ -410,6 +410,27 @@ async function getOrient(email){
   }
 }
 
+function formatDate(dateString) {
+  // Parse the input date string to a Date object
+  const date = new Date(dateString);
+
+  // Define an array with month names in Ukrainian
+  const months = [
+    "січня", "лютого", "березня", "квітня", "травня", "червня",
+    "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"
+  ];
+
+  // Extract the individual components from the Date object
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  const month = months[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
+
+  // Construct the formatted date string
+  return `${hours}:${minutes} ${day} ${month} ${year}`;
+}
+
 async function setCalenId(oAuth2Client, tokens, email){
 
   await client.connect();
@@ -599,6 +620,7 @@ app.post("/student", async (req, res) => {
 app.post("/student-tec", async (req, res) => {
   req.session.tecMail = req.body.tecMail;
   req.session.userMail = req.body.userMail;
+  console.log(req.body.userMail);
   res.redirect("/studentCalendar.ejs");
 })
 app.get("/studentCalendar.ejs", async (req, res) => {
@@ -633,12 +655,14 @@ app.get("/studentCalendar.ejs", async (req, res) => {
     for (let i = 0; i < startTimeEv.length; i++) {
       const changedTimeEv = new Date(startTimeEv[i]);
       startTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+      startTimeEv[i] = formatDate(startTimeEv[i]);
     }
   
     let endTimeEv = await response.map(event => event.end.dateTime);
     for (let i = 0; i < endTimeEv.length; i++) {
       const changedTimeEv = new Date(endTimeEv[i]);
       endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
+      endTimeEv[i] = formatDate(endTimeEv[i]);
     }
     const bMail = btoa(await getCalenId(tecMail)).replace(/=+$/, '');
 
@@ -679,10 +703,10 @@ app.post("/student-cal", async (req, res) => {
       const changedTimeEv = new Date(endTimeEv[i]);
       endTimeEv[i] = new Date(changedTimeEv.getTime() + 180 * 60000).toISOString().replace(/\.\d+/, '');
     }
-
+  console.log(userMail);
   const eventLink = await updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv, endTimeEv);
   req.session.eventLink = eventLink;
-  req.session.message = "Час успішно заюроньовано!";
+  req.session.message = "Час успішно заброньовано!";
 
   res.redirect("/successmessage.ejs");
 })
