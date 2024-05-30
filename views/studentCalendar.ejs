@@ -40,29 +40,32 @@
         </div>
     </form>
     <script>
-        // document.addEventListener("DOMContentLoaded", function() {
-        //     const tecMail = sessionStorage.getItem('tecMail');
-        //     console.log('tecMail:', tecMail);
+         document.getElementById('studentCal').addEventListener('submit', async function(event) {
+            event.preventDefault();
 
-        //     const serverUrl = '/studentCalendar.ejs';
+            const email = localStorage.getItem('email');
+            const formData = new FormData(this);
+            formData.append('email', email);
 
-        //     function sendTecMail() {
-        //         const url = `${serverUrl}?tecMail=${encodeURIComponent(tecMail)}`;
-        //         fetch(url, {
-        //             method: 'GET'
-        //         })
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             console.log('Успіх:', data);
-        //         })
-        //         .catch((error) => {
-        //             console.error('Помилка:', error);
-        //         });
-        //     }
+            const urlParams = new URLSearchParams();
+            formData.forEach((value, key) => {
+                urlParams.append(key, value);
+            });
+            console.log(urlParams);
 
-        //     // Виклик функції для надсилання даних
-        //     sendTecMail();
-        // });
+            try {
+                const response = await fetch('/student-cal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: urlParams.toString()
+                });
+                window.location.href = "/successmessage.ejs";
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
     </script>
 </body>
 </html>

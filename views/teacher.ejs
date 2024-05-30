@@ -50,10 +50,7 @@
                     },
                     body: urlParams.toString()
                 });
-
-                const result = await response;
-                console.log(1);
-                this.submit();
+                window.location.href = "/successmessage.ejs";
             } catch (error) {
                 console.error('Error:', error);
             }

@@ -619,8 +619,7 @@ app.post("/student", async (req, res) => {
 
 app.post("/student-tec", async (req, res) => {
   req.session.tecMail = req.body.tecMail;
-  req.session.userMail = req.body.userMail;
-  console.log(req.body.userMail);
+
   res.redirect("/studentCalendar.ejs");
 })
 app.get("/studentCalendar.ejs", async (req, res) => {
@@ -682,7 +681,7 @@ app.post("/student-cal", async (req, res) => {
 
   const tecMail = req.session.tecMail;
 
-  const userMail= req.session.userMail;;
+  const userMail= req.body.email;
 
   const evId = req.body.tecEvent;
 
@@ -735,6 +734,7 @@ app.post("/teacher", async (req, res) => {
   const startTimeEv = req.body.evDateSt + ":00"; 
   const endTimeEv = req.body.evDateEn + ":00";
   const email = req.body.email;
+  let eventLink;
 
   const stT = new Date(req.body.evDateSt);
   const enT = new Date(req.body.evDateEn);
@@ -743,12 +743,12 @@ app.post("/teacher", async (req, res) => {
   if(stT>=enT){
     res.render("teacher.ejs",{wrngMess: "Кінцевий час мусить бути більший ніж початковий", minTime: curDate})
   }else{
-
-    await refreshToken(email);
-    // req.session.eventLink = await createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
-    const eventLink = await createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
-
-
+    try {
+      eventLink = await createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
+    } catch (error) {
+      await refreshToken(email);
+      eventLink = await createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
+    }
       req.session.eventLink = eventLink;
       req.session.message = "Подію створено успішно!";
 
