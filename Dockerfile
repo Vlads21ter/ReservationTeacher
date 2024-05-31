@@ -22,6 +22,8 @@ RUN npm install mongodb
 
 RUN npm install express-session
 
+RUN npm install @google-apps/meet
+
 # Копіюємо всі файли проекту до робочої директорії
 COPY . .
 

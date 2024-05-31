@@ -2,6 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import {MongoClient, ServerApiVersion} from "mongodb";
 import {google} from "googleapis";
+import {SpacesServiceClient} from "@google-apps/meet";
 import fs from "fs/promises";
 import process from "process";
 import session from "express-session";
@@ -116,6 +117,28 @@ async function createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email)
     });
 }
 
+async function createSpace(token) {
+
+  await getCredentials();
+  const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
+
+  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+
+  oAuth2Client.setCredentials(token);
+  const meetClient = new SpacesServiceClient({
+    authClient: oAuth2Client
+  });
+  // Construct request
+  const request = {
+  };
+
+  // Run request
+  const response = await meetClient.createSpace(request);
+  console.log(`Meet URL: ${response[0].meetingUri}`);
+  // console.log(response[0].meetingCode);
+  return response[0];
+}
+
 async function findEvent(tecMail){
   try {
     await client.connect();
@@ -209,9 +232,21 @@ async function updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv
 
     const endTimeUpdateEv = endTimeDate.toISOString().replace(/\.\d+/, '');
 
+    const linkMeet = await createSpace(tokens);
+
+    console.log("1 " + linkMeet);
+
+    console.log("2 " + linkMeet.activeConference);
+
+    console.log("3 " + linkMeet.config);
+
+    const requestId = linkMeet.meetingCode;
+
+    console.log("4 " + requestId);
+
     const updatedEventData = {
       "summary": "Заброньований час",
-      "description": userMail,
+      "description": `Пошта студента: ${userMail}\nПосилання на Google Meet: ${linkMeet.meetingUri}`,
       "colorId": 9,
       "start": { 
         "dateTime": changedStartTimeDate,
@@ -220,6 +255,14 @@ async function updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv
       "end": { 
         "dateTime": startTimeUpdateEv,
         "timeZone": "Europe/Kiev"
+      },
+      "conferenceData": {
+        "createRequest": {
+          "requestId": requestId,
+          "conferenceSolutionKey": {
+            "type": "hangoutsMeet"
+          }
+        }
       } 
     };
 
