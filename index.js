@@ -234,15 +234,7 @@ async function updateEvent(evId, tecMail, eventId, nameEv, userMail, startTimeEv
 
     const linkMeet = await createSpace(tokens);
 
-    console.log("1 " + linkMeet);
-
-    console.log("2 " + linkMeet.activeConference);
-
-    console.log("3 " + linkMeet.config);
-
     const requestId = linkMeet.meetingCode;
-
-    console.log("4 " + requestId);
 
     const updatedEventData = {
       "summary": "Заброньований час",
@@ -376,6 +368,7 @@ async function refreshToken(email){
 
     await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
   });  
+  return new Promise(resolve => setTimeout(resolve, 1000));
 }
 
 async function regster(surname, name, nameF, email, pass, orient){
@@ -792,6 +785,7 @@ app.post("/teacher", async (req, res) => {
       await refreshToken(email);
       eventLink = await createEvent(nameEv, descriptionEv, startTimeEv, endTimeEv, email);
     }
+
       req.session.eventLink = eventLink;
       req.session.message = "Подію створено успішно!";
 

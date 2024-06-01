@@ -41,6 +41,7 @@ h1{
     margin: 5px;
 }
 #chos{
+    text-align: center;
     padding-left: 47px;
     padding-right: 47px;
 }
@@ -59,7 +60,7 @@ h1{
 }
 #allow{
     text-align: center;
-    margin: 0px;
+    margin: 2px;
     padding-left: 47px;
     padding-right: 47px;
     font-size: 10px;

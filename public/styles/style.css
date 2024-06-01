@@ -27,7 +27,7 @@ h3{
 }
 #instructions{
     margin: auto;
-    width: 1300px;
+    width: auto;
     background-color: white;
     border-radius: 20px;
     padding: 10px;
@@ -37,6 +37,9 @@ h3{
 }
 #instructions h3{
     text-align: center;
+}
+#instrImage{
+    max-width: 100%;
 }
 #instructions p{
     text-align: center;
@@ -131,7 +134,7 @@ h3{
     flex-wrap: wrap;
 }
 
-a{
+#link{
     text-decoration: none;
     color: black ;
 }
