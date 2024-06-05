@@ -6,6 +6,7 @@ import {SpacesServiceClient} from "@google-apps/meet";
 import fs from "fs/promises";
 import process from "process";
 import session from "express-session";
+import { error } from "console";
 
 const uri = "mongodb+srv://shkliarskyiak22:cUxy5UCHUFa682w9@cluster0.dxx1ytg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
@@ -315,6 +316,7 @@ async function generateAuthUrl() {
 }
 
 async function refreshToken(email){
+  console.log(email);
 
   await client.connect();
 
@@ -506,6 +508,72 @@ async function setCalenId(oAuth2Client, tokens, email){
     });  
     console.log("Calendar was created.");
     await client.close();
+}
+
+async function changeName(email, surname, name, secondName){
+  let changeSurname = surname;
+  let changeName = name;
+  let changeSecondName = secondName;
+  try {
+    await client.connect();
+
+    const user = client.db().collection('user');
+    const lg = await user.findOne({email: email});
+
+    if (surname == "") {
+      changeSurname = lg.surname;
+    }
+    if (name == "") {
+      changeName = lg.name;
+    }
+    if (secondName == "") {
+      changeSecondName = lg.nameF;
+    }
+
+    await user.updateOne(
+      {email: email},
+      {
+        $set:
+        {
+          surname: changeSurname,
+          name: changeName,
+          nameF: changeSecondName
+        }
+      }
+    );
+  } catch (error) {
+    console.log("Change Name fail: " + error)
+  }
+  
+}
+
+async function changePassword(email, password, newPassword){
+  try {
+    await client.connect();
+
+    const user = client.db().collection('user');
+
+    const lg = await user.findOne({email: email});
+
+    if (password != lg.pass) {
+      return "Хибний пароль";
+    }
+
+    await user.updateOne(
+      {email: email, pass: password},
+      {
+        $set:
+        {
+          pass: newPassword
+        }
+      }
+    );
+    return "Пароль змінено";
+  } catch (error) {
+    console.log("Change Name fail: " + error)
+    return "Хибний пароль";
+  }
+  
 }
 
 async function getCalenId(mail){
@@ -801,6 +869,80 @@ app.get("/successmessage.ejs", async (req, res) => {
 
   res.render("successmessage.ejs",{message: message, eventLink: link});
 })
+
+app.get("/setting.ejs", async (req, res) => {
+
+  res.render("setting.ejs",{
+    settMess1: "",
+    settMess2: "",
+    settMess3: ""
+  });
+})
+
+app.post("/changeName", async (req, res) => {
+
+  const email = req.body.email;
+  const surname = req.body.surname;
+  const name = req.body.name;
+  const secondName = req.body.nameF;
+
+  await changeName(email, surname, name, secondName);
+
+  res.render("setting.ejs",{
+    settMess1: "Змінено!",
+    settMess2: "",
+    settMess3: ""
+  });
+})
+
+app.post("/updateCalendar", async (req, res) => {
+
+  const email = req.body.email;
+
+  await getCredentials();
+  const { client_id, client_secret, redirect_uris } = credentials.installed || credentials.web;
+
+  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris);
+
+  await client.connect();
+
+  const user = client.db().collection('user');
+  const lg = await user.findOne({email: email});
+
+  const tokens = lg.token;
+
+  oAuth2Client.setCredentials(tokens);
+
+  await fs.writeFile(TOKEN_PATH, JSON.stringify(tokens));
+  try {
+    await setCalenId(oAuth2Client, tokens, email);
+  } catch (error) {
+    await refreshToken(email);
+    await setCalenId(oAuth2Client, tokens, email);
+  }
+
+  res.render("setting.ejs",{
+    settMess1: "",
+    settMess2: "Календар створено!",
+    settMess3: ""
+  });
+})
+
+app.post("/changePassword", async (req, res) => {
+
+  const email = req.body.email;
+  const password = req.body.password;
+  const newPassword = req.body.newPassword;
+
+  const settMess3 = await changePassword(email, password, newPassword);
+
+  res.render("setting.ejs",{
+    settMess1: "",
+    settMess2: "",
+    settMess3: settMess3
+  });
+})
+
 app.listen(port, "0.0.0.0", () => {
     console.log(`Server running on port ${port}.`)
 })

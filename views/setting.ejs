@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ua">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <title>ResTec</title>
+</head>
+<body>
+    <%- include("partials/header.ejs") %>
+    <div id="setting">
+        <h1>Налаштування</h1>
+        <form id="nameForm" action="/changeName" method="POST">
+            <div id="changeName">
+                <h3 id="treg">Змінити ПІБ:</h3><br>
+                <div id="inem">
+                    <input type="email" name="email" id="email1" readonly><br>
+                    <input type="text" placeholder="Прізвище" name="surname" id="nreg"><br/>
+                    <input type="text" placeholder="Ім'я" name="name" id="nreg"><br/>
+                    <input type="text" placeholder="По-батькові" name="nameF" id="nreg"><br/>
+                </div>
+                <h3 id="settMess"><%= settMess1%></h3>
+                <div id="btn">
+                    <input type="submit" id="button" value="Змінити">
+                </div>
+            </div>
+        </form>
+        <form id="calendarForm" action="/updateCalendar" method="POST">
+            <div id="updateCalendar">
+                <h3 id="treg">Створити календар:</h3><br>
+                <label>Якщо ви видалили свій календар у якому створювалися події, ви можете створити новий.</label>
+                <input type="email" style="display:none;" name="email" id="email2" readonly><br>
+                <h3 id="settMess"><%= settMess2%></h3>
+                <div id="btn">
+                    <input type="submit" id="button" value="Створити">
+                </div>
+            </div>
+        </form>
+        <form id="passwordForm" action="/changePassword" method="POST">
+            <div id="changePassword">
+                <input type="email" style="display:none;" name="email" id="email3" readonly><br>
+                <h3 id="treg">Змінити пароль:</h3><br>
+                <label>Введіть ваш пароль:</label>
+                <input type="password" required placeholder="Введіть пароль" name="password" id="nreg"><br>
+                <label>Введіть ваш новий пароль:</label>
+                <input type="password" required placeholder="Введіть новий пароль" name="newPassword" id="nreg"><br>
+                <h3 id="settMess"><%= settMess3%></h3>
+                <div id="btn">
+                    <input type="submit" id="button" value="Змінити">
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        const email = localStorage.getItem('email');
+        document.getElementById("email1").value = email;
+        document.getElementById("email2").value = email;
+        document.getElementById("email3").value = email;
+    </script>
+</body>
+</html>

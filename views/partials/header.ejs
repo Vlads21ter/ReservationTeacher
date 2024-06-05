@@ -5,6 +5,7 @@
             <a href="home.ejs" target="_self">Головна</a>
             <span id="teacherLink" style="display:none;"><a href="teacher.ejs" target="_self">Викладач</a></span>
             <span id="studentLink" style="display:none;"><a href="student.ejs" target="_self">Студент</a></span>
+            <span id="settingLink" style="display:none;" ><a href="setting.ejs" target="_self">Налаштування</a></span>
             <span id="loginLink" style="display:inline-block;" ><a href="login.ejs" target="_self">Увійти</a></span>
         </h3>
     </div>
@@ -17,6 +18,7 @@
                 <a href="home.ejs" target="_self">Головна</a><br>
                 <span id="teacherLink" style="display:none;"><a href="teacher.ejs" target="_self">Викладач</a><br></span>
                 <span id="studentLink" style="display:none;"><a href="student.ejs" target="_self">Студент</a><br></span>
+                <span id="settingLink" style="display:none;" ><a href="setting.ejs" target="_self">Налаштування</a><br></span>
                 <span id="loginLink" style="display:block;" ><a href="login.ejs" target="_self">Увійти</a><br></span>
             </h3>
         </details>
@@ -29,18 +31,21 @@
             
                 const detail = document.getElementById("detail");
                 detail.querySelector("#teacherLink").style.display = 'block';
+                detail.querySelector("#settingLink").style.display = 'block';
                 detail.querySelector("#loginLink").style.display = 'none';
 
                 document.getElementById("teacherLink").style.display = 'inline-block';
-
+                document.getElementById("settingLink").style.display = 'inline-block';
                 document.getElementById("loginLink").style.display = 'none';
             } else if (orient == '"s"') {
 
                 const detail = document.getElementById("detail");
                 detail.querySelector("#studentLink").style.display = 'block';
+                detail.querySelector("#settingLink").style.display = 'block';
                 detail.querySelector("#loginLink").style.display = 'none';
 
                 document.getElementById("studentLink").style.display = 'inline-block';
+                document.getElementById("settingLink").style.display = 'inline-block';
                 document.getElementById("loginLink").style.display = 'none';
             }
         });
