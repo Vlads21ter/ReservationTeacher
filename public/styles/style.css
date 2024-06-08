@@ -1,6 +1,5 @@
 body{
     background-color: #FBF9F1;
-    /* text-align: center; */
     font-family: "Balsamiq Sans", sans-serif;
     font-weight: 400;
     margin: 0cap;
@@ -110,6 +109,28 @@ h3{
 #ev{
     text-align: center;
 }
+#settText{
+    font-family: "Balsamiq Sans", sans-serif;
+    background-color: #FBF9F1;
+    width: 200px;
+    border-radius: 5px;
+    border-width: 1.5px;
+    margin: 5px;
+}
+#email1{
+    font-family: "Balsamiq Sans", sans-serif;
+    background-color: #FBF9F1;
+    width: 200px;
+    border-radius: 5px;
+    border-width: 1.5px;
+    margin: 5px;
+}
+#settMess{
+    margin: 0px;
+    padding-left: 47px;
+    padding-right: 47px;
+    color: red;
+}
 #evIn{
     font-family: "Balsamiq Sans", sans-serif;
     background-color: #FBF9F1;
@@ -142,7 +163,6 @@ h3{
 }
 
 #ev.arrayEv{
-    /* display: flex; */
     flex-wrap: wrap;
 }
 
